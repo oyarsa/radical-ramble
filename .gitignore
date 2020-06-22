@@ -27,6 +27,8 @@ pip-log.txt
 MANIFEST.in
 /setup.py
 
-
 .mypy_cache
 .venv
+
+# Data and other artifacts
+data/
