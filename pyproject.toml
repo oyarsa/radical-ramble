@@ -11,6 +11,9 @@ torchvision = "^0.6.1"
 mypy = "^0.780"
 spacy = "^2.3.0"
 en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.0/en_core_web_sm-2.3.0.tar.gz"}
+jupyter = "^1.0.0"
+pandas = "^1.0.5"
+matplotlib = "^3.2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
