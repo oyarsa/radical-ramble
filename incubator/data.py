@@ -86,12 +86,29 @@ class DatasetRow(NamedTuple):
     tokens: torch.Tensor
     label: torch.Tensor
 
+    def __str__(self) -> str:
+        return (f'DatasetRow\n'
+                f'  dialogueId: {self.dialogueId}\n'
+                f'  utteranceId: {self.utteranceId}\n'
+                f'  tokens: {self.tokens}\n'
+                f'  label: {self.label}'
+        )
+
 class DatasetBatch(NamedTuple):
     dialogueIds: torch.Tensor
     utteranceIds: torch.Tensor
     utteranceTokens: torch.Tensor
     labels: torch.Tensor
     lengths: torch.Tensor
+
+    def __str__(self) -> str:
+        return (f'DatasetBatch\n'
+                f'  dialogueIds: {self.dialogueIds}\n'
+                f'  utteranceIds: {self.utteranceIds}\n'
+                f'  utteranceTokens:\n    {self.utteranceTokens}\n'
+                f'  labels:\n    {self.labels}\n'
+                f'  lengths: {self.lengths}'
+        )
 
 class MeldTextDataset(Dataset): # type: ignore
     def __init__(
