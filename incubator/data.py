@@ -73,19 +73,29 @@ class Vocabulary:
         return len(self._word_types)
 
 
+def one_hot(index: int, length: int) -> torch.Tensor:
+    tensor = torch.zeros(length)
+    tensor[index] = 1
+    return tensor
+
+
 class DatasetRow(NamedTuple):
     dialogueId: int
     utteranceId: int
-    tokenIds: torch.Tensor
-    sentimentId: int
-    emotionId: int
+    tokens: torch.Tensor
+    label: torch.Tensor
 
 class MeldTextDataset(Dataset): # type: ignore
-    def __init__(self, raw_data: Union[pd.DataFrame, Path]):
+    def __init__(
+        self,
+        raw_data: Union[pd.DataFrame, Path],
+        mode: str ='sentiment',
+    ):
         if isinstance(raw_data, Path):
             raw_data = pd.read_csv(raw_data)
         self.data = preprocess_data(raw_data)
         self.token_vocab = Vocabulary(list(self.data.Tokens))
+        self.mode = mode
 
     def __len__(self) -> int:
         return len(self.data)
@@ -93,12 +103,17 @@ class MeldTextDataset(Dataset): # type: ignore
     def __getitem__(self, index: int) -> DatasetRow:
         row = self.data.iloc[index]
         tokenIds = self.token_vocab.map_tokens_to_ids(row.Tokens)
+
+        if self.mode == 'sentiment':
+            label = one_hot(sentiment2index[row.Sentiment], len(sentiments))
+        else:
+            label = one_hot(emotion2index[row.Emotion], len(emotions))
+
         return DatasetRow(
             dialogueId=row.Dialogue_ID,
             utteranceId=row.Utterance_ID,
-            tokenIds=torch.tensor(tokenIds),
-            sentimentId=sentiment2index[row.Sentiment],
-            emotionId=emotion2index[row.Emotion],
+            tokens=torch.tensor(tokenIds),
+            label=label,
         )
 
 

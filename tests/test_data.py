@@ -73,19 +73,32 @@ def test_index_uniqueness() -> None:
         assert len(indexes) == len(set(indexes))
 
 
-def test_dataset() -> None:
+def test_dataset_emotion() -> None:
     raw_data = StringIO(test_data_str)
     df = pd.read_csv(raw_data)
-    dataset = data.MeldTextDataset(df)
+    dataset = data.MeldTextDataset(df, mode='emotion')
 
     assert dataset[0].dialogueId == 0
     assert dataset[0].utteranceId == 0
-    assert dataset[0].emotionId == data.emotion2index['sadness']
-    assert dataset[0].sentimentId == data.sentiment2index['negative']
-    assert len(dataset[0].tokenIds) == len(test_tokens[0])
+    assert dataset[0].label.equal(torch.tensor([0, 0, 0, 0, 0, 0, 1]).float())
+    assert len(dataset[0].tokens) == len(test_tokens[0])
 
     assert dataset[1].dialogueId == 0
     assert dataset[1].utteranceId == 1
-    assert dataset[1].emotionId == data.emotion2index['surprise']
-    assert dataset[1].sentimentId == data.sentiment2index['negative']
-    assert len(dataset[1].tokenIds) == len(test_tokens[1])
+    assert dataset[1].label.equal(torch.tensor([0, 0, 0, 0, 0, 1, 0]).float())
+    assert len(dataset[1].tokens) == len(test_tokens[1])
+
+def test_dataset_sentiment() -> None:
+    raw_data = StringIO(test_data_str)
+    df = pd.read_csv(raw_data)
+    dataset = data.MeldTextDataset(df, mode='sentiment')
+
+    assert dataset[0].dialogueId == 0
+    assert dataset[0].utteranceId == 0
+    assert dataset[0].label.equal(torch.tensor([0, 0, 1]).float())
+    assert len(dataset[0].tokens) == len(test_tokens[0])
+
+    assert dataset[1].dialogueId == 0
+    assert dataset[1].utteranceId == 1
+    assert dataset[1].label.equal(torch.tensor([0, 0, 1]).float())
+    assert len(dataset[1].tokens) == len(test_tokens[1])
