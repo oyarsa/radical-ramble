@@ -86,3 +86,23 @@ def test_dataset_sentiment() -> None:
     assert dataset[1].utteranceId == 1
     assert dataset[1].label.equal(torch.tensor([0, 0, 1]).float())
     assert len(dataset[1].tokens) == len(test_tokens[1])
+
+def test_dataloader() -> None:
+    df = read_test_data()
+    dataset = data.MeldTextDataset(df)
+    loader = DataLoader(
+        dataset,
+        batch_size=2,
+        collate_fn=data.padding_collate_fn
+    )
+    length0 = len(test_tokens[0])
+    length1 = len(test_tokens[1])
+    max_length = max(length0, length1)
+
+    for batch in loader:
+        assert batch.dialogueIds.equal(torch.tensor([0, 0]))
+        assert batch.utteranceIds.equal(torch.tensor([0, 1]))
+        assert batch.labels.equal(torch.tensor([[0, 0, 1],
+                                                [0, 0, 1]]).float())
+        assert batch.lengths.equal(torch.tensor([length0, length1]))
+        assert all(len(seq) == max_length for seq in batch.utteranceTokens)

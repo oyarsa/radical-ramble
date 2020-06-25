@@ -5,6 +5,7 @@ import pandas as pd
 import spacy
 import torch
 from torch.utils.data import Dataset
+from torch.nn.utils.rnn import pad_sequence
 from spacy.lang.en import English
 
 sentiments = [
@@ -85,6 +86,13 @@ class DatasetRow(NamedTuple):
     tokens: torch.Tensor
     label: torch.Tensor
 
+class DatasetBatch(NamedTuple):
+    dialogueIds: torch.Tensor
+    utteranceIds: torch.Tensor
+    utteranceTokens: torch.Tensor
+    labels: torch.Tensor
+    lengths: torch.Tensor
+
 class MeldTextDataset(Dataset): # type: ignore
     def __init__(
         self,
@@ -115,6 +123,25 @@ class MeldTextDataset(Dataset): # type: ignore
             tokens=torch.tensor(tokenIds),
             label=label,
         )
+
+
+def padding_collate_fn(batch: List[DatasetRow]) -> DatasetBatch:
+    lengths = torch.tensor([len(item.tokens) for item in batch])
+
+    labels = torch.stack([item.label for item in batch], dim=0)
+    utteranceIds = torch.tensor([item.utteranceId for item in batch])
+    dialogueIds = torch.tensor([item.dialogueId for item in batch])
+
+    tokensList = [item.tokens for item in batch]
+    utteranceTokens = pad_sequence(tokensList, batch_first=True)
+
+    return DatasetBatch(
+        lengths=lengths,
+        utteranceIds=utteranceIds,
+        dialogueIds=dialogueIds,
+        utteranceTokens=utteranceTokens,
+        labels=labels
+    )
 
 
 def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
