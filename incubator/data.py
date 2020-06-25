@@ -33,10 +33,10 @@ emotion2index = {
 def build_indexes(
     word_types: Set[str]
 ) -> Tuple[Dict[str, int], Dict[int, str]]:
-    word2idx = {'UNK': 0}
-    idx2word = {0: 'UNK'}
+    word2idx = {'<PAD>': 0, '<UNK>': 1}
+    idx2word = {0: '<PAD>', 1: '<UNK>'}
 
-    for i, word in enumerate(word_types, 1):
+    for i, word in enumerate(word_types, 2):
         word2idx[word] = i
         idx2word[i] = word
 
