@@ -1,22 +1,12 @@
 import os
-from io import StringIO
 from pathlib import Path
 
 import pandas as pd
 import torch
+from torch.utils.data.dataloader import DataLoader
 
 from incubator import data
-
-test_data_str = """
-Sr No.,Utterance,Speaker,Emotion,Sentiment,Dialogue_ID,Utterance_ID,Season,Episode,StartTime,EndTime
-1,"Oh my God, hes lost it. Hes totally lost it.",Phoebe,sadness,negative,0,0,4,7,"00:20:57,256","00:21:00,049"
-2,What?,Monica,surprise,negative,0,1,4,7,"00:21:01,927","00:21:03,261"
-"""
-test_tokens = [
-    ['Oh', 'my', 'God', 'he', "'s", 'lost', 'it', 'He', "'s",
-     'totally', 'lost', 'it'],
-    ['What'],
-]
+from tests.helpers import read_test_data, test_tokens
 
 def test_clean_unicode() -> None:
     data_path = Path('./data/dev/metadata.csv')
@@ -27,16 +17,14 @@ def test_clean_unicode() -> None:
     assert len(nonascii) == 0
 
 def test_preprocessing() -> None:
-    raw_data = StringIO(test_data_str)
-    df = pd.read_csv(raw_data)
+    df = read_test_data()
     processed = data.preprocess_data(df)
 
     assert list(processed.iloc[0].Tokens) == test_tokens[0]
     assert list(processed.iloc[1].Tokens) == test_tokens[1]
 
 def test_word_types() -> None:
-    raw_data = StringIO(test_data_str)
-    df = pd.read_csv(raw_data)
+    df = read_test_data()
     processed = data.preprocess_data(df)
 
     word_types = data.get_word_types(list(df.Tokens))
@@ -45,8 +33,7 @@ def test_word_types() -> None:
 
 def test_build_indexes() -> None:
     "Test if every token has an index and the two-way mapping is right"
-    raw_data = StringIO(test_data_str)
-    df = pd.read_csv(raw_data)
+    df = read_test_data()
     processed = data.preprocess_data(df)
     word_types = data.get_word_types(list(df.Tokens))
 
@@ -61,8 +48,7 @@ def test_build_indexes() -> None:
 
 def test_index_uniqueness() -> None:
     "Test if every token has an unique index"
-    raw_data = StringIO(test_data_str)
-    df = pd.read_csv(raw_data)
+    df = read_test_data()
     processed = data.preprocess_data(df)
     word_types = data.get_word_types(list(df.Tokens))
 
@@ -74,8 +60,7 @@ def test_index_uniqueness() -> None:
 
 
 def test_dataset_emotion() -> None:
-    raw_data = StringIO(test_data_str)
-    df = pd.read_csv(raw_data)
+    df = read_test_data()
     dataset = data.MeldTextDataset(df, mode='emotion')
 
     assert dataset[0].dialogueId == 0
@@ -89,8 +74,7 @@ def test_dataset_emotion() -> None:
     assert len(dataset[1].tokens) == len(test_tokens[1])
 
 def test_dataset_sentiment() -> None:
-    raw_data = StringIO(test_data_str)
-    df = pd.read_csv(raw_data)
+    df = read_test_data()
     dataset = data.MeldTextDataset(df, mode='sentiment')
 
     assert dataset[0].dialogueId == 0
