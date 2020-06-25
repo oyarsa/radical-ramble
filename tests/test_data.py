@@ -22,6 +22,7 @@ def test_preprocessing() -> None:
 
     assert list(processed.iloc[0].Tokens) == test_tokens[0]
     assert list(processed.iloc[1].Tokens) == test_tokens[1]
+    assert list(processed.iloc[2].Tokens) == test_tokens[2]
 
 def test_word_types() -> None:
     df = read_test_data()
@@ -29,7 +30,8 @@ def test_word_types() -> None:
 
     word_types = data.get_word_types(list(df.Tokens))
 
-    assert all(token in word_types for token in test_tokens[0])
+    for tokens in test_tokens:
+        assert all(token in word_types for token in tokens)
 
 def test_build_indexes() -> None:
     "Test if every token has an index and the two-way mapping is right"
@@ -92,17 +94,20 @@ def test_dataloader() -> None:
     dataset = data.MeldTextDataset(df)
     loader = DataLoader(
         dataset,
-        batch_size=2,
+        batch_size=3,
         collate_fn=data.padding_collate_fn
     )
     length0 = len(test_tokens[0])
     length1 = len(test_tokens[1])
-    max_length = max(length0, length1)
+    length2 = len(test_tokens[2])
+    max_length = max(length0, length1, length2)
 
     for batch in loader:
-        assert batch.dialogueIds.equal(torch.tensor([0, 0]))
-        assert batch.utteranceIds.equal(torch.tensor([0, 1]))
-        assert batch.labels.equal(torch.tensor([[0, 0, 1],
+        assert batch.dialogueIds.equal(torch.tensor([1, 0, 0]))
+        assert batch.utteranceIds.equal(torch.tensor([0, 0, 1]))
+        assert batch.labels.equal(torch.tensor([[0, 1, 0],
+                                                [0, 0, 1],
                                                 [0, 0, 1]]).float())
-        assert batch.lengths.equal(torch.tensor([length0, length1]))
+        assert batch.lengths.equal(torch.tensor([length2, length0, length1]))
         assert all(len(seq) == max_length for seq in batch.utteranceTokens)
+

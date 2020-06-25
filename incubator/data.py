@@ -143,13 +143,14 @@ class MeldTextDataset(Dataset): # type: ignore
 
 
 def padding_collate_fn(batch: List[DatasetRow]) -> DatasetBatch:
-    lengths = torch.tensor([len(item.tokens) for item in batch])
+    sortedBatch = sorted(batch, key=lambda row: -len(row.tokens))
+    lengths = torch.tensor([len(item.tokens) for item in sortedBatch])
 
-    labels = torch.stack([item.label for item in batch], dim=0)
-    utteranceIds = torch.tensor([item.utteranceId for item in batch])
-    dialogueIds = torch.tensor([item.dialogueId for item in batch])
+    labels = torch.stack([item.label for item in sortedBatch], dim=0)
+    utteranceIds = torch.tensor([item.utteranceId for item in sortedBatch])
+    dialogueIds = torch.tensor([item.dialogueId for item in sortedBatch])
 
-    tokensList = [item.tokens for item in batch]
+    tokensList = [item.tokens for item in sortedBatch]
     utteranceTokens = pad_sequence(tokensList, batch_first=True)
 
     return DatasetBatch(
