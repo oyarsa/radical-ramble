@@ -31,4 +31,5 @@ MANIFEST.in
 .venv
 
 # Data and other artifacts
-data/
+data
+.ipynb_checkpoints
