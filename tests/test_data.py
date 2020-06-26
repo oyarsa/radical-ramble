@@ -9,7 +9,7 @@ from incubator import data
 from incubator.util import flatten2list
 from incubator.datasets.meld_linear_text_dataset import (
     MeldLinearTextDataset,
-    padding_collate_fn,
+    meld_linear_text_daloader,
 )
 from tests.helpers import read_test_data, test_tokens
 
@@ -105,10 +105,9 @@ def test_dataset_sentiment() -> None:
 def test_dataloader() -> None:
     df = read_test_data()
     dataset = MeldLinearTextDataset(df)
-    loader = DataLoader(
-        dataset,
+    loader = meld_linear_text_daloader(
+        dataset=dataset,
         batch_size=3,
-        collate_fn=padding_collate_fn
     )
     length0 = len(test_tokens[0])
     length1 = len(test_tokens[1])

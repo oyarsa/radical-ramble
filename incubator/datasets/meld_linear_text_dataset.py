@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data.dataloader import DataLoader
 
 from incubator.data import (
     Vocabulary,
@@ -84,7 +85,7 @@ class MeldLinearTextDataset(Dataset): # type: ignore
         return self.vocab.vocab_size()
 
 
-def padding_collate_fn(batch: List[LinearTextDatasetRow]) -> LinearTextDatasetBatch:
+def _padding_collate_fn(batch: List[LinearTextDatasetRow]) -> LinearTextDatasetBatch:
     sortedBatch = sorted(batch, key=lambda row: -len(row.tokens))
     lengths = torch.tensor([len(item.tokens) for item in sortedBatch])
 
@@ -102,3 +103,14 @@ def padding_collate_fn(batch: List[LinearTextDatasetRow]) -> LinearTextDatasetBa
         utteranceTokens=utteranceTokens,
         labels=labels
     )
+
+def meld_linear_text_daloader(
+    dataset: MeldLinearTextDataset,
+    batch_size: int
+) -> DataLoader: # type: ignore
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        collate_fn=_padding_collate_fn,
+    )
+

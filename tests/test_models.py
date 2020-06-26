@@ -8,7 +8,7 @@ from incubator.models.simple_classifier import (
 )
 from incubator.datasets.meld_linear_text_dataset import (
     MeldLinearTextDataset,
-    padding_collate_fn,
+    meld_linear_text_daloader,
 )
 from tests.helpers import read_test_data, test_tokens
 
@@ -26,10 +26,9 @@ def test_simple_classifier() -> None:
     df = read_test_data()
     dataset = MeldLinearTextDataset(df, mode='emotion')
 
-    loader = DataLoader(
-        dataset,
+    loader = meld_linear_text_daloader(
+        dataset=dataset,
         batch_size=batch_size,
-        collate_fn=padding_collate_fn
     )
 
     classifier = random_emb_simple_classifier(
@@ -49,10 +48,9 @@ def test_glove_classifier() -> None:
     dataset = MeldLinearTextDataset(df, mode='emotion')
     glove_file = StringIO(glove_str)
 
-    loader = DataLoader(
-        dataset,
+    loader = meld_linear_text_daloader(
+        dataset=dataset,
         batch_size=batch_size,
-        collate_fn=padding_collate_fn,
     )
 
     classifier = glove_simple_classifier(
