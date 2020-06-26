@@ -8,6 +8,9 @@ from torch.utils.data.dataloader import DataLoader
 from incubator import data
 from tests.helpers import read_test_data, test_tokens
 
+PAD_TOKEN = '<PAD>'
+UNK_TOKEN = '<UNK>'
+
 def test_clean_unicode() -> None:
     data_path = Path('./data/dev/metadata.csv')
     dev = pd.read_csv(data_path)
@@ -39,7 +42,7 @@ def test_build_indexes() -> None:
     processed = data.preprocess_data(df)
     word_types = data.get_word_types(list(df.Tokens))
 
-    word2idx, idx2word = data.build_indexes(word_types)
+    word2idx, idx2word = data.build_indexes(word_types, PAD_TOKEN, UNK_TOKEN)
 
     for sentence in test_tokens:
         for token in sentence:
@@ -54,7 +57,7 @@ def test_index_uniqueness() -> None:
     processed = data.preprocess_data(df)
     word_types = data.get_word_types(list(df.Tokens))
 
-    word2idx, idx2word = data.build_indexes(word_types)
+    word2idx, idx2word = data.build_indexes(word_types, PAD_TOKEN, UNK_TOKEN)
 
     for sentence in test_tokens:
         indexes = [word2idx[token] for token in set(sentence)]

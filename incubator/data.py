@@ -31,10 +31,12 @@ emotion2index = {
 }
 
 def build_indexes(
-    word_types: Set[str]
+    word_types: Set[str],
+    pad_token: str,
+    unk_token: str,
 ) -> Tuple[Dict[str, int], Dict[int, str]]:
-    word2idx = {'<PAD>': 0, '<UNK>': 1}
-    idx2word = {0: '<PAD>', 1: '<UNK>'}
+    word2idx = {pad_token: 0, unk_token: 1}
+    idx2word = {0: pad_token, 1: unk_token}
 
     for i, word in enumerate(word_types, 2):
         word2idx[word] = i
@@ -42,21 +44,27 @@ def build_indexes(
 
     return word2idx, idx2word
 
-
 def get_word_types(texts: List[List[str]]) -> Set[str]:
     return set(word for text in texts for word in text)
 
-
 class Vocabulary:
-    def __init__(self, texts: List[List[str]]):
+    def __init__(
+        self,
+        texts: List[List[str]],
+        pad_token: str='<PAD>',
+        unk_token: str='<UNK>',
+    ):
+        self.pad_token = pad_token
+        self.unk_token = unk_token
         word_types = get_word_types(texts)
-        self._word2index, self._index2word = build_indexes(word_types)
+        self._word2index, self._index2word = build_indexes(
+            word_types, pad_token, unk_token)
 
     def word2index(self, word: str) -> int:
         if word in self._word2index:
             return self._word2index[word]
         else:
-            return self._word2index['UNK']
+            return self._word2index[self.unk_token]
 
     def index2word(self, index: int) -> str:
         if index in self._index2word:
@@ -72,6 +80,7 @@ class Vocabulary:
 
     def vocab_size(self) -> int:
         return len(self._word2index)
+
 
 
 def one_hot(index: int, length: int) -> torch.Tensor:
