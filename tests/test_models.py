@@ -6,6 +6,10 @@ from incubator.models.simple_classifier import (
     random_emb_simple_classifier,
     glove_simple_classifier,
 )
+from incubator.datasets.meld_linear_text_dataset import (
+    MeldLinearTextDataset,
+    padding_collate_fn,
+)
 from tests.helpers import read_test_data, test_tokens
 
 batch_size = 3
@@ -20,12 +24,12 @@ glove_dim = 3
 
 def test_simple_classifier() -> None:
     df = read_test_data()
-    dataset = data.MeldTextDataset(df, mode='emotion')
+    dataset = MeldLinearTextDataset(df, mode='emotion')
 
     loader = DataLoader(
         dataset,
         batch_size=batch_size,
-        collate_fn=data.padding_collate_fn
+        collate_fn=padding_collate_fn
     )
 
     classifier = random_emb_simple_classifier(
@@ -42,13 +46,13 @@ def test_simple_classifier() -> None:
 def test_glove_classifier() -> None:
     "Test if GloVe loader works with synthetic data"
     df = read_test_data()
-    dataset = data.MeldTextDataset(df, mode='emotion')
+    dataset = MeldLinearTextDataset(df, mode='emotion')
     glove_file = StringIO(glove_str)
 
     loader = DataLoader(
         dataset,
         batch_size=batch_size,
-        collate_fn=data.padding_collate_fn
+        collate_fn=padding_collate_fn,
     )
 
     classifier = glove_simple_classifier(

@@ -1,3 +1,4 @@
+from typing import TypeVar, Callable, Union, Iterable, List
 import os
 import random
 import torch
@@ -16,3 +17,24 @@ def set_seed(seed: int) -> None:
     np.random.seed(seed)
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
+
+
+T = TypeVar('T')
+def chain_func(initialArg: T, *functions: Callable[[T], T]) -> T:
+    result = initialArg
+    for function in functions:
+        result = function(result)
+    return result
+
+
+def flatten2list(object: Iterable[T]) -> List[T]:
+    """
+        Taken from https://symbiosisacademy.org/tutorial-index/python-flatten-nested-lists-tuples-sets/
+    """
+    gather = []
+    for item in object:
+        if isinstance(item, (list, tuple, set)):
+            gather.extend(flatten2list(item))
+        else:
+            gather.append(item)
+    return gather

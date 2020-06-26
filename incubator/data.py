@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import Tuple, NamedTuple, List, TypeVar, Callable, Union, Dict, Set
+from typing import Tuple, List, Dict, Set
 
 import pandas as pd
 import spacy
 import torch
-from torch.utils.data import Dataset
-from torch.nn.utils.rnn import pad_sequence
 from spacy.lang.en import English
+
+from incubator.util import chain_func, flatten2list
 
 sentiments = [
     'positive',
@@ -44,19 +44,19 @@ def build_indexes(
 
     return word2idx, idx2word
 
-def get_word_types(texts: List[List[str]]) -> Set[str]:
-    return set(word for text in texts for word in text)
+def get_word_types(words: List[str]) -> Set[str]:
+    return set(word for word in words)
 
 class Vocabulary:
     def __init__(
         self,
-        texts: List[List[str]],
+        words: List[str],
         pad_token: str='<PAD>',
         unk_token: str='<UNK>',
     ):
         self.pad_token = pad_token
         self.unk_token = unk_token
-        word_types = get_word_types(texts)
+        word_types = get_word_types(words)
         self._word2index, self._index2word = build_indexes(
             word_types, pad_token, unk_token)
 
@@ -87,91 +87,6 @@ def one_hot(index: int, length: int) -> torch.Tensor:
     tensor = torch.zeros(length)
     tensor[index] = 1
     return tensor
-
-
-class DatasetRow(NamedTuple):
-    dialogueId: int
-    utteranceId: int
-    tokens: torch.Tensor
-    label: torch.Tensor
-
-    def __str__(self) -> str:
-        return (f'DatasetRow\n'
-                f'  dialogueId: {self.dialogueId}\n'
-                f'  utteranceId: {self.utteranceId}\n'
-                f'  tokens: {self.tokens}\n'
-                f'  label: {self.label}'
-        )
-
-class DatasetBatch(NamedTuple):
-    dialogueIds: torch.Tensor
-    utteranceIds: torch.Tensor
-    utteranceTokens: torch.Tensor
-    labels: torch.Tensor
-    lengths: torch.Tensor
-
-    def __str__(self) -> str:
-        return (f'DatasetBatch\n'
-                f'  dialogueIds: {self.dialogueIds}\n'
-                f'  utteranceIds: {self.utteranceIds}\n'
-                f'  utteranceTokens:\n    {self.utteranceTokens}\n'
-                f'  labels:\n    {self.labels}\n'
-                f'  lengths: {self.lengths}'
-        )
-
-class MeldTextDataset(Dataset): # type: ignore
-    def __init__(
-        self,
-        raw_data: Union[pd.DataFrame, Path],
-        mode: str ='sentiment',
-    ):
-        if isinstance(raw_data, Path):
-            raw_data = pd.read_csv(raw_data)
-        self.data = preprocess_data(raw_data)
-        self.vocab = Vocabulary(list(self.data.Tokens))
-        self.mode = mode
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def __getitem__(self, index: int) -> DatasetRow:
-        row = self.data.iloc[index]
-        tokenIds = self.vocab.map_tokens_to_ids(row.Tokens)
-
-        if self.mode == 'sentiment':
-            label = one_hot(sentiment2index[row.Sentiment], len(sentiments))
-        else:
-            label = one_hot(emotion2index[row.Emotion], len(emotions))
-
-        return DatasetRow(
-            dialogueId=row.Dialogue_ID,
-            utteranceId=row.Utterance_ID,
-            tokens=torch.tensor(tokenIds),
-            label=label,
-        )
-
-    def vocab_size(self) -> int:
-        return self.vocab.vocab_size()
-
-
-def padding_collate_fn(batch: List[DatasetRow]) -> DatasetBatch:
-    sortedBatch = sorted(batch, key=lambda row: -len(row.tokens))
-    lengths = torch.tensor([len(item.tokens) for item in sortedBatch])
-
-    labels = torch.stack([item.label for item in sortedBatch], dim=0)
-    utteranceIds = torch.tensor([item.utteranceId for item in sortedBatch])
-    dialogueIds = torch.tensor([item.dialogueId for item in sortedBatch])
-
-    tokensList = [item.tokens for item in sortedBatch]
-    utteranceTokens = pad_sequence(tokensList, batch_first=True)
-
-    return DatasetBatch(
-        lengths=lengths,
-        utteranceIds=utteranceIds,
-        dialogueIds=dialogueIds,
-        utteranceTokens=utteranceTokens,
-        labels=labels
-    )
 
 
 def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
@@ -223,11 +138,3 @@ def remove_punctuation(data: pd.DataFrame) -> pd.DataFrame:
         return [token.text for token in tokens if not token.is_punct]
     data.Tokens = data.Tokens.apply(filter_punct)
     return data
-
-
-T = TypeVar('T')
-def chain_func(initialArg: T, *functions: Callable[[T], T]) -> T:
-    result = initialArg
-    for function in functions:
-        result = function(result)
-    return result

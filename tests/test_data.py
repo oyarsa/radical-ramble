@@ -6,6 +6,11 @@ import torch
 from torch.utils.data.dataloader import DataLoader
 
 from incubator import data
+from incubator.util import flatten2list
+from incubator.datasets.meld_linear_text_dataset import (
+    MeldLinearTextDataset,
+    padding_collate_fn,
+)
 from tests.helpers import read_test_data, test_tokens
 
 PAD_TOKEN = '<PAD>'
@@ -30,8 +35,9 @@ def test_preprocessing() -> None:
 def test_word_types() -> None:
     df = read_test_data()
     processed = data.preprocess_data(df)
+    words = flatten2list(list(df.Tokens))
 
-    word_types = data.get_word_types(list(df.Tokens))
+    word_types = data.get_word_types(words)
 
     for tokens in test_tokens:
         assert all(token in word_types for token in tokens)
@@ -40,7 +46,9 @@ def test_build_indexes() -> None:
     "Test if every token has an index and the two-way mapping is right"
     df = read_test_data()
     processed = data.preprocess_data(df)
-    word_types = data.get_word_types(list(df.Tokens))
+    words = flatten2list(list(df.Tokens))
+
+    word_types = data.get_word_types(words)
 
     word2idx, idx2word = data.build_indexes(word_types, PAD_TOKEN, UNK_TOKEN)
 
@@ -55,7 +63,9 @@ def test_index_uniqueness() -> None:
     "Test if every token has an unique index"
     df = read_test_data()
     processed = data.preprocess_data(df)
-    word_types = data.get_word_types(list(df.Tokens))
+    words = flatten2list(list(df.Tokens))
+
+    word_types = data.get_word_types(words)
 
     word2idx, idx2word = data.build_indexes(word_types, PAD_TOKEN, UNK_TOKEN)
 
@@ -66,7 +76,7 @@ def test_index_uniqueness() -> None:
 
 def test_dataset_emotion() -> None:
     df = read_test_data()
-    dataset = data.MeldTextDataset(df, mode='emotion')
+    dataset = MeldLinearTextDataset(df, mode='emotion')
 
     assert dataset[0].dialogueId == 0
     assert dataset[0].utteranceId == 0
@@ -80,7 +90,7 @@ def test_dataset_emotion() -> None:
 
 def test_dataset_sentiment() -> None:
     df = read_test_data()
-    dataset = data.MeldTextDataset(df, mode='sentiment')
+    dataset = MeldLinearTextDataset(df, mode='sentiment')
 
     assert dataset[0].dialogueId == 0
     assert dataset[0].utteranceId == 0
@@ -94,11 +104,11 @@ def test_dataset_sentiment() -> None:
 
 def test_dataloader() -> None:
     df = read_test_data()
-    dataset = data.MeldTextDataset(df)
+    dataset = MeldLinearTextDataset(df)
     loader = DataLoader(
         dataset,
         batch_size=3,
-        collate_fn=data.padding_collate_fn
+        collate_fn=padding_collate_fn
     )
     length0 = len(test_tokens[0])
     length1 = len(test_tokens[1])
