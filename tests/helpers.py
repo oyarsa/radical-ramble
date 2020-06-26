@@ -9,10 +9,10 @@ Sr No.,Utterance,Speaker,Emotion,Sentiment,Dialogue_ID,Utterance_ID,Season,Episo
 3,"Or! Or, we could go to the bank, close our accounts and cut them off at the source.",Ross,neutral,neutral,1,0,4,4,"00:12:24,660","00:12:30,915"
 """
 test_tokens = [
-    ['Oh', 'my', 'God', 'he', "'s", 'lost', 'it', 'He', "'s",
+    ['oh', 'my', 'god', 'he', "'s", 'lost', 'it', 'he', "'s",
      'totally', 'lost', 'it'],
-    ['What'],
-    ['Or', 'Or', 'we', 'could', 'go', 'to', 'the', 'bank', 'close', 'our', 'accounts', 'and', 'cut', 'them', 'off', 'at', 'the', 'source'],
+    ['what'],
+    ['or', 'or', 'we', 'could', 'go', 'to', 'the', 'bank', 'close', 'our', 'accounts', 'and', 'cut', 'them', 'off', 'at', 'the', 'source'],
 ]
 
 def read_test_data() -> pd.DataFrame:

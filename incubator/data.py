@@ -176,10 +176,16 @@ def padding_collate_fn(batch: List[DatasetRow]) -> DatasetBatch:
 
 def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
     return chain_func(data,
+        lower_case,
         clean_unicode,
         tokenise,
         remove_punctuation,
     )
+
+
+def lower_case(data: pd.DataFrame) -> pd.DataFrame:
+    data['Utterance'] = data.Utterance.str.lower()
+    return data
 
 
 def clean_unicode(data: pd.DataFrame) -> pd.DataFrame:
