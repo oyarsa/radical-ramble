@@ -18,7 +18,6 @@ def test_simple_classifier() -> None:
         collate_fn=data.padding_collate_fn
     )
 
-
     classifier = SimpleClassifier(
         vocab_size=dataset.vocab_size(),
         embedding_dim=embedding_dim,
