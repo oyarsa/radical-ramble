@@ -49,8 +49,8 @@ def get_word_types(texts: List[List[str]]) -> Set[str]:
 
 class Vocabulary:
     def __init__(self, texts: List[List[str]]):
-        self._word_types = get_word_types(texts)
-        self._word2index, self._index2word = build_indexes(self._word_types)
+        word_types = get_word_types(texts)
+        self._word2index, self._index2word = build_indexes(word_types)
 
     def word2index(self, word: str) -> int:
         if word in self._word2index:
@@ -71,7 +71,7 @@ class Vocabulary:
         return [self.index2word(id) for id in ids]
 
     def vocab_size(self) -> int:
-        return len(self._word_types)
+        return len(self._word2index)
 
 
 def one_hot(index: int, length: int) -> torch.Tensor:
@@ -119,7 +119,7 @@ class MeldTextDataset(Dataset): # type: ignore
         if isinstance(raw_data, Path):
             raw_data = pd.read_csv(raw_data)
         self.data = preprocess_data(raw_data)
-        self.token_vocab = Vocabulary(list(self.data.Tokens))
+        self.vocab = Vocabulary(list(self.data.Tokens))
         self.mode = mode
 
     def __len__(self) -> int:
@@ -127,7 +127,7 @@ class MeldTextDataset(Dataset): # type: ignore
 
     def __getitem__(self, index: int) -> DatasetRow:
         row = self.data.iloc[index]
-        tokenIds = self.token_vocab.map_tokens_to_ids(row.Tokens)
+        tokenIds = self.vocab.map_tokens_to_ids(row.Tokens)
 
         if self.mode == 'sentiment':
             label = one_hot(sentiment2index[row.Sentiment], len(sentiments))
@@ -140,6 +140,9 @@ class MeldTextDataset(Dataset): # type: ignore
             tokens=torch.tensor(tokenIds),
             label=label,
         )
+
+    def vocab_size(self) -> int:
+        return self.vocab.vocab_size()
 
 
 def padding_collate_fn(batch: List[DatasetRow]) -> DatasetBatch:
