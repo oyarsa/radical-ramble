@@ -78,13 +78,13 @@ def test_dataset_emotion() -> None:
     df = read_test_data()
     dataset = MeldLinearTextDataset(df, mode='emotion')
 
-    assert dataset[0].dialogueId == 0
-    assert dataset[0].utteranceId == 0
+    assert dataset[0].dialogue_id == 0
+    assert dataset[0].utterance_id == 0
     assert dataset[0].label.equal(torch.tensor([0, 0, 0, 0, 0, 0, 1]).float())
     assert len(dataset[0].tokens) == len(test_tokens[0])
 
-    assert dataset[1].dialogueId == 0
-    assert dataset[1].utteranceId == 1
+    assert dataset[1].dialogue_id == 0
+    assert dataset[1].utterance_id == 1
     assert dataset[1].label.equal(torch.tensor([0, 0, 0, 0, 0, 1, 0]).float())
     assert len(dataset[1].tokens) == len(test_tokens[1])
 
@@ -92,13 +92,13 @@ def test_dataset_sentiment() -> None:
     df = read_test_data()
     dataset = MeldLinearTextDataset(df, mode='sentiment')
 
-    assert dataset[0].dialogueId == 0
-    assert dataset[0].utteranceId == 0
+    assert dataset[0].dialogue_id == 0
+    assert dataset[0].utterance_id == 0
     assert dataset[0].label.equal(torch.tensor([0, 0, 1]).float())
     assert len(dataset[0].tokens) == len(test_tokens[0])
 
-    assert dataset[1].dialogueId == 0
-    assert dataset[1].utteranceId == 1
+    assert dataset[1].dialogue_id == 0
+    assert dataset[1].utterance_id == 1
     assert dataset[1].label.equal(torch.tensor([0, 0, 1]).float())
     assert len(dataset[1].tokens) == len(test_tokens[1])
 
@@ -115,11 +115,11 @@ def test_dataloader() -> None:
     max_length = max(length0, length1, length2)
 
     for batch in loader:
-        assert batch.dialogueIds.equal(torch.tensor([1, 0, 0]))
-        assert batch.utteranceIds.equal(torch.tensor([0, 0, 1]))
+        assert batch.dialogue_ids.equal(torch.tensor([1, 0, 0]))
+        assert batch.utterance_ids.equal(torch.tensor([0, 0, 1]))
         assert batch.labels.equal(torch.tensor([[0, 1, 0],
                                                 [0, 0, 1],
                                                 [0, 0, 1]]).float())
         assert batch.lengths.equal(torch.tensor([length2, length0, length1]))
-        assert all(len(seq) == max_length for seq in batch.utteranceTokens)
+        assert all(len(seq) == max_length for seq in batch.utterance_tokens)
 

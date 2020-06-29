@@ -1,4 +1,5 @@
-from typing import TypeVar, Callable, Union, Iterable, List
+"Utility functions that don't fit elsewhere."
+from typing import TypeVar, Callable, Iterable, List
 import os
 import random
 import torch
@@ -19,20 +20,26 @@ def set_seed(seed: int) -> None:
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 
+# pylint: disable=invalid-name
 T = TypeVar('T')
-def chain_func(initialArg: T, *functions: Callable[[T], T]) -> T:
-    result = initialArg
+def chain_func(initial_arg: T, *functions: Callable[[T], T]) -> T:
+    """
+    Chain-applies `functions`, starting with `initial_args` and using the
+    output from a function as input to the next.
+    """
+    result = initial_arg
     for function in functions:
         result = function(result)
     return result
 
 
-def flatten2list(object: Iterable[T]) -> List[T]:
+def flatten2list(iterable: Iterable[T]) -> List[T]:
     """
-        Taken from https://symbiosisacademy.org/tutorial-index/python-flatten-nested-lists-tuples-sets/
+    # pylint: disable=line-too-long
+    Taken from https://symbiosisacademy.org/tutorial-index/python-flatten-nested-lists-tuples-sets/
     """
     gather = []
-    for item in object:
+    for item in iterable:
         if isinstance(item, (list, tuple, set)):
             gather.extend(flatten2list(item))
         else:

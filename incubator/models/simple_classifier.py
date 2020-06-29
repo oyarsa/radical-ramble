@@ -8,9 +8,8 @@ from incubator.data import Vocabulary
 
 class SimpleClassifier(nn.Module): # type: ignore
     def __init__(self,
-        embedding: nn.Embedding,
-        num_classes: int,
-    ):
+                 embedding: nn.Embedding,
+                 num_classes: int):
         super(SimpleClassifier, self).__init__()
 
         self.embedding = embedding
@@ -20,6 +19,7 @@ class SimpleClassifier(nn.Module): # type: ignore
             out_features=num_classes,
         )
 
+    # pylint: disable=arguments-differ
     def forward(self, utteranceTokens: Tensor) -> Tensor:
         """
             utteranceTokens: (batch, seq_len, vocab_len)
@@ -34,10 +34,10 @@ class SimpleClassifier(nn.Module): # type: ignore
         return output
 
 def random_emb_simple_classifier(
-    vocab_size: int,
-    embedding_dim: int,
-    num_classes: int,
-) -> SimpleClassifier:
+        vocab_size: int,
+        embedding_dim: int,
+        num_classes: int,
+    ) -> SimpleClassifier:
     embedding = nn.Embedding(
         num_embeddings=vocab_size,
         embedding_dim=embedding_dim,
@@ -49,11 +49,11 @@ def random_emb_simple_classifier(
     )
 
 def glove_simple_classifier(
-    glove_path: Union[Path, TextIO],
-    glove_dim: int,
-    num_classes: int,
-    vocab: Vocabulary,
-) -> SimpleClassifier:
+        glove_path: Union[Path, TextIO],
+        glove_dim: int,
+        num_classes: int,
+        vocab: Vocabulary,
+    ) -> SimpleClassifier:
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,

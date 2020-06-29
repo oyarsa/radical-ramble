@@ -19,41 +19,40 @@ from incubator.data import (
 from incubator.util import flatten2list
 
 class LinearTextDatasetRow(NamedTuple):
-    dialogueId: int
-    utteranceId: int
+    dialogue_id: int
+    utterance_id: int
     tokens: torch.Tensor
     label: torch.Tensor
 
     def __str__(self) -> str:
         return (f'DatasetRow\n'
-                f'  dialogueId: {self.dialogueId}\n'
-                f'  utteranceId: {self.utteranceId}\n'
+                f'  dialogue_id: {self.dialogue_id}\n'
+                f'  utterance_id: {self.utterance_id}\n'
                 f'  tokens: {self.tokens}\n'
                 f'  label: {self.label}'
-        )
+                )
 
 class LinearTextDatasetBatch(NamedTuple):
-    dialogueIds: torch.Tensor
-    utteranceIds: torch.Tensor
-    utteranceTokens: torch.Tensor
+    dialogue_ids: torch.Tensor
+    utterance_tokens: torch.Tensor
+    utterance_ids: torch.Tensor
     labels: torch.Tensor
     lengths: torch.Tensor
 
     def __str__(self) -> str:
         return (f'DatasetBatch\n'
-                f'  dialogueIds: {self.dialogueIds}\n'
-                f'  utteranceIds: {self.utteranceIds}\n'
-                f'  utteranceTokens:\n    {self.utteranceTokens}\n'
+                f'  dialogue_ids: {self.dialogue_ids}\n'
+                f'  utterance_ids: {self.utterance_ids}\n'
+                f'  utterance_tokens:\n    {self.utterance_tokens}\n'
                 f'  labels:\n    {self.labels}\n'
                 f'  lengths: {self.lengths}'
-        )
+                )
+
 
 class MeldLinearTextDataset(Dataset): # type: ignore
-    def __init__(
-        self,
-        raw_data: Union[pd.DataFrame, Path],
-        mode: str ='sentiment',
-    ):
+    def __init__(self,
+                 raw_data: Union[pd.DataFrame, Path],
+                 mode: str = 'sentiment'):
         if isinstance(raw_data, Path):
             raw_data = pd.read_csv(raw_data)
         self.data = preprocess_data(raw_data)
@@ -67,7 +66,7 @@ class MeldLinearTextDataset(Dataset): # type: ignore
 
     def __getitem__(self, index: int) -> LinearTextDatasetRow:
         row = self.data.iloc[index]
-        tokenIds = self.vocab.map_tokens_to_ids(row.Tokens)
+        token_ids = self.vocab.map_tokens_to_ids(row.Tokens)
 
         if self.mode == 'sentiment':
             label = one_hot(sentiment2index[row.Sentiment], len(sentiments))
@@ -75,9 +74,9 @@ class MeldLinearTextDataset(Dataset): # type: ignore
             label = one_hot(emotion2index[row.Emotion], len(emotions))
 
         return LinearTextDatasetRow(
-            dialogueId=row.Dialogue_ID,
-            utteranceId=row.Utterance_ID,
-            tokens=torch.tensor(tokenIds),
+            dialogue_id=row.Dialogue_ID,
+            utterance_id=row.Utterance_ID,
+            tokens=torch.tensor(token_ids),
             label=label,
         )
 
@@ -86,31 +85,30 @@ class MeldLinearTextDataset(Dataset): # type: ignore
 
 
 def _padding_collate_fn(batch: List[LinearTextDatasetRow]) -> LinearTextDatasetBatch:
-    sortedBatch = sorted(batch, key=lambda row: -len(row.tokens))
-    lengths = torch.tensor([len(item.tokens) for item in sortedBatch])
+    sorted_batch = sorted(batch, key=lambda row: -len(row.tokens))
+    lengths = torch.tensor([len(item.tokens) for item in sorted_batch])
 
-    labels = torch.stack([item.label for item in sortedBatch], dim=0)
-    utteranceIds = torch.tensor([item.utteranceId for item in sortedBatch])
-    dialogueIds = torch.tensor([item.dialogueId for item in sortedBatch])
+    labels = torch.stack([item.label for item in sorted_batch], dim=0)
+    utterance_ids = torch.tensor([item.utterance_id for item in sorted_batch])
+    dialogue_ids = torch.tensor([item.dialogue_id for item in sorted_batch])
 
-    tokensList = [item.tokens for item in sortedBatch]
-    utteranceTokens = pad_sequence(tokensList, batch_first=True)
+    tokens_list = [item.tokens for item in sorted_batch]
+    utterance_tokens = pad_sequence(tokens_list, batch_first=True)
 
     return LinearTextDatasetBatch(
         lengths=lengths,
-        utteranceIds=utteranceIds,
-        dialogueIds=dialogueIds,
-        utteranceTokens=utteranceTokens,
+        utterance_ids=utterance_ids,
+        dialogue_ids=dialogue_ids,
+        utterance_tokens=utterance_tokens,
         labels=labels
     )
 
 def meld_linear_text_daloader(
-    dataset: MeldLinearTextDataset,
-    batch_size: int
-) -> DataLoader: # type: ignore
+        dataset: MeldLinearTextDataset,
+        batch_size: int
+    ) -> DataLoader: # type: ignore
     return DataLoader(
         dataset,
         batch_size=batch_size,
         collate_fn=_padding_collate_fn,
     )
-

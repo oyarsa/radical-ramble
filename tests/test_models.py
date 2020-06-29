@@ -38,7 +38,7 @@ def test_simple_classifier() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utteranceTokens)
+        predictions = classifier(batch.utterance_tokens)
         assert predictions.shape == (batch_size, num_classes)
 
 
@@ -61,5 +61,5 @@ def test_glove_classifier() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utteranceTokens)
+        predictions = classifier(batch.utterance_tokens)
         assert predictions.shape == (batch_size, num_classes)

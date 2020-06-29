@@ -1,4 +1,4 @@
-from pathlib import Path
+"Functions for manipulating the MELD dataset"
 from typing import Tuple, List, Dict, Set
 
 import pandas as pd
@@ -6,7 +6,7 @@ import spacy
 import torch
 from spacy.lang.en import English
 
-from incubator.util import chain_func, flatten2list
+from incubator.util import chain_func
 
 sentiments = [
     'positive',
@@ -31,10 +31,10 @@ emotion2index = {
 }
 
 def build_indexes(
-    word_types: Set[str],
-    pad_token: str,
-    unk_token: str,
-) -> Tuple[Dict[str, int], Dict[int, str]]:
+        word_types: Set[str],
+        pad_token: str,
+        unk_token: str
+        ) -> Tuple[Dict[str, int], Dict[int, str]]:
     word2idx = {pad_token: 0, unk_token: 1}
     idx2word = {0: pad_token, 1: unk_token}
 
@@ -49,10 +49,10 @@ def get_word_types(words: List[str]) -> Set[str]:
 
 class Vocabulary:
     def __init__(
-        self,
-        words: List[str],
-        pad_token: str='<PAD>',
-        unk_token: str='<UNK>',
+            self,
+            words: List[str],
+            pad_token: str = '<PAD>',
+            unk_token: str = '<UNK>',
     ):
         self.pad_token = pad_token
         self.unk_token = unk_token
@@ -63,14 +63,12 @@ class Vocabulary:
     def word2index(self, word: str) -> int:
         if word in self._word2index:
             return self._word2index[word]
-        else:
-            return self._word2index[self.unk_token]
+        return self._word2index[self.unk_token]
 
     def index2word(self, index: int) -> str:
         if index in self._index2word:
             return self._index2word[index]
-        else:
-            return self._index2word[0]
+        return self._index2word[0]
 
     def map_tokens_to_ids(self, tokens: List[str]) -> List[int]:
         return [self.word2index(token) for token in tokens]
@@ -90,7 +88,8 @@ def one_hot(index: int, length: int) -> torch.Tensor:
 
 
 def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
-    return chain_func(data,
+    return chain_func(
+        data,
         lower_case,
         clean_unicode,
         tokenise,
@@ -107,12 +106,12 @@ def clean_unicode(data: pd.DataFrame) -> pd.DataFrame:
     "Replace the Unicode characters with their appropriate replacements."
     data['Utterance'] = (
         data.Utterance.apply(lambda s: s.replace('\x92', "'"))
-            .apply(lambda s: s.replace('\x85', ". "))
-            .apply(lambda s: s.replace('\x97', " "))
-            .apply(lambda s: s.replace('\x91', ""))
-            .apply(lambda s: s.replace('\x93', ""))
-            .apply(lambda s: s.replace('\xa0', ""))
-            .apply(lambda s: s.replace('\x94', ""))
+        .apply(lambda s: s.replace('\x85', ". "))
+        .apply(lambda s: s.replace('\x97', " "))
+        .apply(lambda s: s.replace('\x91', ""))
+        .apply(lambda s: s.replace('\x93', ""))
+        .apply(lambda s: s.replace('\xa0', ""))
+        .apply(lambda s: s.replace('\x94', ""))
     )
     return data
 

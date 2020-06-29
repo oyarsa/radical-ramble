@@ -1,3 +1,4 @@
+"GloVe-related functions for loading."
 from typing import TextIO, Union
 from pathlib import Path
 import torch
@@ -7,10 +8,11 @@ from incubator.data import Vocabulary
 TextFile = Union[Path, TextIO]
 
 def load_glove(
-    input_file: TextFile,
-    vocab: Vocabulary,
-    glove_dim: int,
-) -> torch.Tensor:
+        input_file: TextFile,
+        vocab: Vocabulary,
+        glove_dim: int
+        ) -> torch.Tensor:
+    "Loads GloVe weight matrix based on a Vocabulary"
     weight_matrix = torch.zeros(size=(vocab.vocab_size(), glove_dim))
     if isinstance(input_file, Path):
         input_file = open(input_file, 'r')
