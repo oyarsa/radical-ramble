@@ -8,16 +8,17 @@ authors = ["Italo Silva <italo@maleldil.com>"]
 python = "^3.6.8"
 torch = "^1.5.1"
 torchvision = "^0.6.1"
-mypy = "^0.780"
 spacy = "^2.3.0"
 en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.0/en_core_web_sm-2.3.0.tar.gz"}
 jupyter = "^1.0.0"
 pandas = "^1.0.5"
 matplotlib = "^3.2.2"
+tqdm = "^4.47.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 pylint = "^2.5.3"
+mypy = "^0.780"
 
 [build-system]
 requires = ["poetry>=0.12"]

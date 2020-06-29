@@ -9,6 +9,8 @@ import tests.test_models as tm
 from tests.helpers import read_test_data
 
 def test_train() -> None:
+    set_seed(1000)
+
     df = read_test_data()
     dataset = mltd.MeldLinearTextDataset(df, mode='emotion')
     glove_file = StringIO(tm.glove_str)
@@ -25,4 +27,4 @@ def test_train() -> None:
         vocab=dataset.vocab,
     )
 
-    train(classifier, loader)
+    train(model=classifier, trainloader=loader, devloader=loader)
