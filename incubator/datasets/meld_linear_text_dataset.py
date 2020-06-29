@@ -9,7 +9,6 @@ from torch.utils.data.dataloader import DataLoader
 
 from incubator.data import (
     Vocabulary,
-    one_hot,
     preprocess_data,
     sentiment2index,
     sentiments,
@@ -69,9 +68,9 @@ class MeldLinearTextDataset(Dataset): # type: ignore
         token_ids = self.vocab.map_tokens_to_ids(row.Tokens)
 
         if self.mode == 'sentiment':
-            label = one_hot(sentiment2index[row.Sentiment], len(sentiments))
+            label = torch.tensor(sentiment2index[row.Sentiment])
         else:
-            label = one_hot(emotion2index[row.Emotion], len(emotions))
+            label = torch.tensor(emotion2index[row.Emotion])
 
         return LinearTextDatasetRow(
             dialogue_id=row.Dialogue_ID,

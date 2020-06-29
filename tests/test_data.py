@@ -80,12 +80,12 @@ def test_dataset_emotion() -> None:
 
     assert dataset[0].dialogue_id == 0
     assert dataset[0].utterance_id == 0
-    assert dataset[0].label.equal(torch.tensor([0, 0, 0, 0, 0, 0, 1]).float())
+    assert dataset[0].label.equal(torch.tensor(6))
     assert len(dataset[0].tokens) == len(test_tokens[0])
 
     assert dataset[1].dialogue_id == 0
     assert dataset[1].utterance_id == 1
-    assert dataset[1].label.equal(torch.tensor([0, 0, 0, 0, 0, 1, 0]).float())
+    assert dataset[1].label.equal(torch.tensor(5))
     assert len(dataset[1].tokens) == len(test_tokens[1])
 
 def test_dataset_sentiment() -> None:
@@ -94,12 +94,12 @@ def test_dataset_sentiment() -> None:
 
     assert dataset[0].dialogue_id == 0
     assert dataset[0].utterance_id == 0
-    assert dataset[0].label.equal(torch.tensor([0, 0, 1]).float())
+    assert dataset[0].label.equal(torch.tensor(2))
     assert len(dataset[0].tokens) == len(test_tokens[0])
 
     assert dataset[1].dialogue_id == 0
     assert dataset[1].utterance_id == 1
-    assert dataset[1].label.equal(torch.tensor([0, 0, 1]).float())
+    assert dataset[1].label.equal(torch.tensor(2))
     assert len(dataset[1].tokens) == len(test_tokens[1])
 
 def test_dataloader() -> None:
@@ -117,9 +117,6 @@ def test_dataloader() -> None:
     for batch in loader:
         assert batch.dialogue_ids.equal(torch.tensor([1, 0, 0]))
         assert batch.utterance_ids.equal(torch.tensor([0, 0, 1]))
-        assert batch.labels.equal(torch.tensor([[0, 1, 0],
-                                                [0, 0, 1],
-                                                [0, 0, 1]]).float())
+        assert batch.labels.equal(torch.tensor([1, 2, 2]))
         assert batch.lengths.equal(torch.tensor([length2, length0, length1]))
         assert all(len(seq) == max_length for seq in batch.utterance_tokens)
-
