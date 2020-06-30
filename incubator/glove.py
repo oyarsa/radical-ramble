@@ -1,5 +1,5 @@
 "GloVe-related functions for loading."
-from typing import TextIO, Union
+from typing import TextIO, Union, cast, Optional
 from pathlib import Path
 import torch
 
@@ -11,8 +11,13 @@ def load_glove(
         input_file: TextFile,
         vocab: Vocabulary,
         glove_dim: int,
+        saved_glove_file: Optional[Path] = None,
         ) -> torch.Tensor:
     "Loads GloVe weight matrix based on a Vocabulary"
+    if saved_glove_file and saved_glove_file.exists():
+        print('Loading GloVe file from', saved_glove_file)
+        return cast(torch.Tensor, torch.load(saved_glove_file))
+
     weight_matrix = torch.zeros(size=(vocab.vocab_size(), glove_dim))
     if isinstance(input_file, Path):
         input_file = open(input_file, 'r')
@@ -23,5 +28,9 @@ def load_glove(
         weight_matrix[vocab.word2index(word)] = torch.tensor(weights)
 
     input_file.close()
+
+    if saved_glove_file:
+        print('Saving GloVe file to', saved_glove_file)
+        torch.save(weight_matrix, saved_glove_file)
 
     return weight_matrix

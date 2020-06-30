@@ -4,10 +4,10 @@ import argparse
 import sys
 from pathlib import Path
 
-import wandb
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
+import wandb
 
 import incubator.datasets.meld_linear_text_dataset as mltd
 import incubator.data as data
@@ -77,12 +77,20 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
         train_data = loaders.trainloader.dataset
         assert isinstance(train_data, mltd.MeldLinearTextDataset)
 
+
+        if not args.saved_glove_file:
+            glove_name = f'glove.{args.glove_dim}d.p'
+            saved_glove_file = Path(args.train_data).parent / glove_name
+        else:
+            saved_glove_file = args.saved_glove_file
+
         model = glove_simple_classifier(
             glove_path=args.glove_path,
             glove_dim=args.glove_dim,
             num_classes=num_classes,
             vocab=train_data.vocab,
             freeze=not args.glove_train,
+            saved_glove_file=saved_glove_file,
         )
 
     return ModelData(model=model, data=loaders)
@@ -109,6 +117,7 @@ def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
         devloader=model_data.data.devloader,
         gpu=args.gpu,
         log_interval=args.log_interval,
+        learning_rate=args.lr,
     )
 
     torch.save(model.state_dict(), Path(wandb.run.dir) / 'model.pt')
@@ -144,6 +153,8 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Which GPU to use. Defaults to CPU')
     parser.add_argument('--log_interval', type=int, default=10,
                         help='Number of batches between each report to WandB')
+    parser.add_argument('--saved_glove_file',
+                        help='Path to pre-processed GloVe file')
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to an evaluation command"
@@ -161,6 +172,8 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
                         help='GloVe vector dim')
     parser.add_argument('--gpu', type=int, default=-1,
                         help='Which GPU to use. Defaults to CPU.')
+    parser.add_argument('--saved_glove_file',
+                        help='Path to pre-processed GloVe file')
 
 def main() -> None:
     "Main function. Parses CLI arguments for train/eval commands"

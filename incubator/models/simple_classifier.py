@@ -1,5 +1,5 @@
 "SimpleClassifier model and associated helper functions"
-from typing import Union, TextIO
+from typing import Union, TextIO, Optional
 from pathlib import Path
 import torch.nn as nn
 from torch import Tensor
@@ -63,12 +63,14 @@ def glove_simple_classifier(
         num_classes: int,
         vocab: Vocabulary,
         freeze: bool = True,
+        saved_glove_file: Optional[Path] = None,
     ) -> SimpleClassifier:
     "SimpleClassifier with embedding layer initialised with GloVe"
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,
         vocab=vocab,
+        saved_glove_file=saved_glove_file,
     )
 
     embedding = nn.Embedding.from_pretrained(glove, freeze=freeze)

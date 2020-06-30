@@ -1,4 +1,7 @@
+import pytest
+from typing import Any
 from io import StringIO
+import wandb
 
 import incubator.datasets.meld_linear_text_dataset as mltd
 from incubator.models.simple_classifier import glove_simple_classifier
@@ -8,8 +11,13 @@ from incubator.train import train
 import tests.test_models as tm
 from tests.helpers import read_test_data
 
-def test_train() -> None:
+def test_train(monkeypatch: pytest.MonkeyPatch) -> None:
     set_seed(1000)
+
+    def noop(arg: Any) -> None:
+        return
+
+    monkeypatch.setattr(wandb, 'log', noop)
 
     df = read_test_data()
     dataset = mltd.MeldLinearTextDataset(df, mode='emotion')

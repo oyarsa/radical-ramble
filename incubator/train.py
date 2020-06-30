@@ -118,7 +118,7 @@ def train(model: nn.Module, # type: ignore
           devloader: Optional[DataLoader] = None, # type: ignore
           num_epochs: int = 10,
           gpu: int = -1,
-          lr: float = 0.01,
+          learning_rate: float = 0.01,
           verbose=False,
           log_interval: int = 10,
           ) -> nn.Module: # type: ignore
@@ -130,7 +130,7 @@ def train(model: nn.Module, # type: ignore
 
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimiser = optim.Adam(model.parameters(), lr=lr)
+    optimiser = optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in range(num_epochs):
         train_results = train_epoch(epoch, model, trainloader, criterion,
