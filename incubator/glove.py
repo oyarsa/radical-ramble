@@ -10,7 +10,7 @@ TextFile = Union[Path, TextIO]
 def load_glove(
         input_file: TextFile,
         vocab: Vocabulary,
-        glove_dim: int
+        glove_dim: int,
         ) -> torch.Tensor:
     "Loads GloVe weight matrix based on a Vocabulary"
     weight_matrix = torch.zeros(size=(vocab.vocab_size(), glove_dim))

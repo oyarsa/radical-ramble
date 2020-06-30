@@ -80,6 +80,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             glove_dim=args.glove_dim,
             num_classes=num_classes,
             vocab=train_data.vocab,
+            freeze=not args.glove_train,
         )
 
     return ModelData(model=model, data=loaders)
@@ -132,6 +133,8 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Path to GloVe')
     parser.add_argument('--glove_dim', type=int, default=defaults['glove_dim'],
                         help='GloVe vector dim')
+    parser.add_argument('--glove_train', action='store_true',
+                        help='Whether to train GloVe embeddings')
     parser.add_argument('--output', help='Output path for saved model')
     parser.add_argument('--gpu', type=int, default=-1,
                         help='Which GPU to use. Defaults to CPU.')

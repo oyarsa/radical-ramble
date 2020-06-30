@@ -62,6 +62,7 @@ def glove_simple_classifier(
         glove_dim: int,
         num_classes: int,
         vocab: Vocabulary,
+        freeze: bool = True,
     ) -> SimpleClassifier:
     "SimpleClassifier with embedding layer initialised with GloVe"
     glove = load_glove(
@@ -70,7 +71,7 @@ def glove_simple_classifier(
         vocab=vocab,
     )
 
-    embedding = nn.Embedding.from_pretrained(glove)
+    embedding = nn.Embedding.from_pretrained(glove, freeze=freeze)
 
     return SimpleClassifier(
         embedding=embedding,

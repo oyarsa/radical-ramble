@@ -48,7 +48,7 @@ def train_epoch(
 
         running_loss += loss.item()
         running_acc += (outputs.argmax(1) == labels).sum().item()
-        running_len += len(batch)
+        running_len += outputs.shape[0]
 
         cur_loss = running_loss / running_len
         cur_acc = running_acc / running_len
@@ -75,27 +75,30 @@ def dev_epoch(epoch: int,
                        leave=True)
 
     with torch.no_grad():
-        dev_acc = 0.0
-        dev_loss = 0.0
+        running_acc = 0.0
+        running_loss = 0.0
+        running_len = 0
         for i, batch in enumerate(devloader):
             inputs = batch.utterance_tokens.to(device)
             labels = batch.labels.to(device)
 
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            dev_loss += loss.item()
-            dev_acc += (outputs.argmax(1) == labels).sum().item()
 
-            cur_loss = dev_loss / (i + 1)
-            cur_acc = dev_acc / (i + 1)
+            running_loss += loss.item()
+            running_acc += (outputs.argmax(1) == labels).sum().item()
+            running_len += outputs.shape[0]
+
+            cur_loss = running_loss / running_len
+            cur_acc = running_acc / running_len
 
             pbar.set_description(f'#{epoch} [Dev  ] acc: {cur_acc:.3f} '
                                  f'loss: {cur_loss:.3f}')
             pbar.update(1)
 
     return EpochResults(
-        accuracy=dev_acc / len(devloader),
-        loss=dev_loss / len(devloader),
+        accuracy=running_acc / len(devloader),
+        loss=running_loss / len(devloader),
     )
 
 
