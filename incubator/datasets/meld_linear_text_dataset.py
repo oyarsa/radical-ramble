@@ -1,3 +1,4 @@
+"MeldLinearTextDataset class and assorted helper functions"
 from typing import NamedTuple, Union, List
 from pathlib import Path
 
@@ -16,6 +17,10 @@ from incubator.data import (
 from incubator.util import flatten2list
 
 class LinearTextDatasetRow(NamedTuple):
+    """
+    Tuple to hold the fields for a given row of data in tensor form.
+    Represents a single row/instance.
+    """
     dialogue_id: int
     utterance_id: int
     tokens: torch.Tensor
@@ -30,6 +35,10 @@ class LinearTextDatasetRow(NamedTuple):
                 )
 
 class LinearTextDatasetBatch(NamedTuple):
+    """
+    Tuple to hold the fields for a given batch of data in tensor form.
+    Represents a whole batch. Tensors are batch-first.
+    """
     dialogue_ids: torch.Tensor
     utterance_tokens: torch.Tensor
     utterance_ids: torch.Tensor
@@ -47,6 +56,10 @@ class LinearTextDatasetBatch(NamedTuple):
 
 
 class MeldLinearTextDataset(Dataset): # type: ignore
+    """
+    Dataset for simple, linear text. Utterances are considered separately,
+    without considering dialogues.
+    """
     def __init__(self,
                  data: Union[pd.DataFrame, Path],
                  mode: str = 'sentiment'):
@@ -78,6 +91,7 @@ class MeldLinearTextDataset(Dataset): # type: ignore
         )
 
     def vocab_size(self) -> int:
+        "Returns the size of the vocabulary built from this data"
         return self.vocab.vocab_size()
 
 
@@ -104,6 +118,7 @@ def meld_linear_text_daloader(
         dataset: MeldLinearTextDataset,
         batch_size: int
     ) -> DataLoader: # type: ignore
+    "Returns a DataLoader configured with the appropriate batching function"
     return DataLoader(
         dataset,
         batch_size=batch_size,

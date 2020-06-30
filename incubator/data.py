@@ -35,6 +35,7 @@ def build_indexes(
         pad_token: str,
         unk_token: str
         ) -> Tuple[Dict[str, int], Dict[int, str]]:
+    "Builds word -> index and index -> word maps."
     word2idx = {pad_token: 0, unk_token: 1}
     idx2word = {0: pad_token, 1: unk_token}
 
@@ -44,10 +45,14 @@ def build_indexes(
 
     return word2idx, idx2word
 
+
 def get_word_types(words: List[str]) -> Set[str]:
+    "Builds set of word types from list of words"
     return set(word for word in words)
 
+
 class Vocabulary:
+    "Holds the indexes for converting between tokens and token ids"
     def __init__(
             self,
             words: List[str],
@@ -61,33 +66,39 @@ class Vocabulary:
             word_types, pad_token, unk_token)
 
     def word2index(self, word: str) -> int:
+        "Returns the id of `word`"
         if word in self._word2index:
             return self._word2index[word]
         return self._word2index[self.unk_token]
 
     def index2word(self, index: int) -> str:
+        "Returns the word for `index`"
         if index in self._index2word:
             return self._index2word[index]
         return self._index2word[0]
 
     def map_tokens_to_ids(self, tokens: List[str]) -> List[int]:
+        "Maps a list of tokens to their list of ids"
         return [self.word2index(token) for token in tokens]
 
     def map_ids_to_tokens(self, ids: List[int]) -> List[str]:
+        "Maps a list of ids back to the original tokens"
         return [self.index2word(id) for id in ids]
 
     def vocab_size(self) -> int:
+        "Total size of the vocabulary, i.e., number of words"
         return len(self._word2index)
 
 
-
 def one_hot(index: int, length: int) -> torch.Tensor:
+    "Convert integer to one-hot vector representation"
     tensor = torch.zeros(length)
     tensor[index] = 1
     return tensor
 
 
 def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
+    "Chain-applies data pre-processing functions"
     return chain_func(
         data,
         lower_case,
@@ -98,6 +109,7 @@ def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def lower_case(data: pd.DataFrame) -> pd.DataFrame:
+    "Converts all strings to lower case"
     data['Utterance'] = data.Utterance.str.lower()
     return data
 
@@ -127,12 +139,14 @@ def get_tokeniser() -> spacy.tokenizer.Tokenizer:
 
 
 def tokenise(data: pd.DataFrame) -> pd.DataFrame:
+    "Tokenises strings using the tokeniser from `get_tokeniser`"
     tokeniser = get_tokeniser()
     data['Tokens'] = data.Utterance.apply(tokeniser)
     return data
 
 
 def remove_punctuation(data: pd.DataFrame) -> pd.DataFrame:
+    "Removes punctuation tokens"
     def filter_punct(tokens: spacy.tokens.Doc) -> List[str]:
         return [token.text for token in tokens if not token.is_punct]
     data.Tokens = data.Tokens.apply(filter_punct)

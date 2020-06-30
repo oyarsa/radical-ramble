@@ -1,3 +1,4 @@
+"Training loop for torch models"
 from typing import Optional, NamedTuple
 import shutil
 
@@ -9,6 +10,7 @@ import tqdm
 
 
 class EpochResults(NamedTuple):
+    "Results for a given epoch"
     accuracy: float
     loss: float
 
@@ -21,6 +23,7 @@ def train_epoch(
         optimiser: optim.Optimizer, # type: ignore
         device: torch.device,
         ) -> EpochResults:
+    "Performs training pass for an epoch. Reports loss and accuracy"
     running_loss = 0.0
     running_acc = 0.0
     running_len = 0
@@ -66,6 +69,7 @@ def dev_epoch(epoch: int,
               criterion: nn.CrossEntropyLoss,
               device: torch.device,
               ) -> EpochResults:
+    "Performs evaluation of dev dataset for an epoch"
     pbar = tqdm.trange(len(devloader),
                        desc=f'#{epoch} [Dev  ] acc: 0.000 loss: 0.000',
                        leave=True)
@@ -102,6 +106,7 @@ def train(model: nn.Module, # type: ignore
           gpu: int = -1,
           verbose=False,
           ) -> nn.Module: # type: ignore
+    "Performs training loop"
     if gpu < 0:
         device = torch.device('cpu')
     else:

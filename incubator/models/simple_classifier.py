@@ -1,3 +1,4 @@
+"SimpleClassifier model and associated helper functions"
 from typing import Union, TextIO
 from pathlib import Path
 import torch.nn as nn
@@ -7,6 +8,13 @@ from incubator.glove import load_glove
 from incubator.data import Vocabulary
 
 class SimpleClassifier(nn.Module): # type: ignore
+    """
+    Simplest possible model from sequence of tokens to a class output
+
+        TokenIds -> Embedding -> Average -> Dense -> Output
+
+    Where `Average` is literally just averaging the embedding vectors into one.
+    """
     def __init__(self,
                  embedding: nn.Embedding,
                  num_classes: int):
@@ -22,7 +30,7 @@ class SimpleClassifier(nn.Module): # type: ignore
     # pylint: disable=arguments-differ
     def forward(self, utteranceTokens: Tensor) -> Tensor:
         """
-            utteranceTokens: (batch, seq_len, vocab_len)
+        utteranceTokens: (batch, seq_len, vocab_len)
         """
         # (batch, seq_len, embedding_dim)
         embeddings = self.embedding(utteranceTokens)
@@ -38,6 +46,7 @@ def random_emb_simple_classifier(
         embedding_dim: int,
         num_classes: int,
     ) -> SimpleClassifier:
+    "SimpleClassifier with randomly initialised embeddings layer"
     embedding = nn.Embedding(
         num_embeddings=vocab_size,
         embedding_dim=embedding_dim,
@@ -54,6 +63,7 @@ def glove_simple_classifier(
         num_classes: int,
         vocab: Vocabulary,
     ) -> SimpleClassifier:
+    "SimpleClassifier with embedding layer initialised with GloVe"
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,

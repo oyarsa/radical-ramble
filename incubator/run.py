@@ -16,16 +16,19 @@ from incubator import util
 
 
 class Dataloaders(NamedTuple):
+    "Training and Dev dataloaders"
     trainloader: DataLoader # type: ignore
     devloader: Optional[DataLoader] # type: ignore
 
 
 class ModelData(NamedTuple):
+    "Structure for holding a model and its suitable data loaders"
     model: nn.Module # type: ignore
     data: Dataloaders
 
 
 def load_mltd(args: argparse.Namespace) -> Dataloaders:
+    "Loads data for a MeldLinearText dataset"
     train_data = mltd.MeldLinearTextDataset(
         data=Path(args.train_data),
         mode=args.mode,
@@ -49,6 +52,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
 
 
 def load_data(args: argparse.Namespace) -> Dataloaders:
+    "Loads data with the appropriate data format for the model"
     mltd_based = ['simple_glove']
 
     if args.model in mltd_based:
@@ -59,6 +63,7 @@ def load_data(args: argparse.Namespace) -> Dataloaders:
 
 
 def get_model_and_data(args: argparse.Namespace) -> ModelData:
+    "Returns the initialised model and appropriate dataset"
     if args.mode == 'sentiment':
         num_classes = len(data.sentiments)
     else:
@@ -81,6 +86,14 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
 
 
 def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
+    """
+    Instantiates and initialises the model given in `args`. Also loads
+    the appropriate dataset, using the paths given. Then trains the model.
+
+    The training loop uses `CrossEntropyLoss` as criterion. Outputs accuracy
+    and loss statistics for the training dataset and (optionally) a dev
+    dataset. Progress in each epoch is tracked via a progress bar.
+    """
     model_data = get_model_and_data(args)
 
     model = train(
@@ -98,6 +111,7 @@ def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
 
 
 def train_arguments(parser: argparse.ArgumentParser) -> None:
+    "Adds arguments to a training command"
     defaults = {
         'glove_path': Path('./data/glove/glove.6B.50d.txt'),
         'glove_dim': 50,
@@ -123,6 +137,7 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Which GPU to use. Defaults to CPU.')
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
+    "Adds arguments to an evaluation command"
     defaults = {
         'glove_path': Path('./data/glove/glove.6B.50d.txt'),
         'glove_dim': 50,
@@ -144,6 +159,7 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Which GPU to use. Defaults to CPU.')
 
 def main() -> None:
+    "Main function. Parses CLI arguments for train/eval commands"
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Task to perform', dest='command')
 
