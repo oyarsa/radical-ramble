@@ -1,14 +1,20 @@
 test:
-	@poetry run pytest tests $(ARGS)
+	poetry run pytest tests $(ARGS)
 
 jupyter:
-	@poetry run jupyter notebook
+	poetry run jupyter notebook
 
-repl:
-	@poetry run python
+py:
+	poetry run python $(ARGS)
 
 mypy:
-	@poetry run mypy incubator
+	poetry run mypy incubator
+
+lint:
+	poetry run pylint incubator
 
 run:
-	@poetry run python -m incubator.run
+	poetry run python -m incubator.run $(ARGS)
+
+train:
+	poetry run python -m incubator.run train $(ARGS)

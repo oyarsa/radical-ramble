@@ -11,9 +11,7 @@ from incubator.data import (
     Vocabulary,
     preprocess_data,
     sentiment2index,
-    sentiments,
     emotion2index,
-    emotions
 )
 from incubator.util import flatten2list
 
@@ -50,11 +48,11 @@ class LinearTextDatasetBatch(NamedTuple):
 
 class MeldLinearTextDataset(Dataset): # type: ignore
     def __init__(self,
-                 raw_data: Union[pd.DataFrame, Path],
+                 data: Union[pd.DataFrame, Path],
                  mode: str = 'sentiment'):
-        if isinstance(raw_data, Path):
-            raw_data = pd.read_csv(raw_data)
-        self.data = preprocess_data(raw_data)
+        if isinstance(data, Path):
+            data = pd.read_csv(data)
+        self.data = preprocess_data(data)
         lst = list(self.data.Tokens)
         words = flatten2list(lst)
         self.vocab = Vocabulary(words)
