@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+import wandb
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
@@ -13,7 +14,7 @@ import incubator.data as data
 from incubator.models.simple_classifier import glove_simple_classifier
 from incubator.train import train
 from incubator import util
-import incubator.config as config
+from incubator.config import defaults
 
 
 class Dataloaders(NamedTuple):
@@ -98,14 +99,19 @@ def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
     """
     model_data = get_model_and_data(args)
 
+    model = model_data.model
+    wandb.watch(model)
+
     model = train(
-        model=model_data.model,
+        model=model,
         num_epochs=args.num_epochs,
         trainloader=model_data.data.trainloader,
         devloader=model_data.data.devloader,
         gpu=args.gpu,
+        log_interval=args.log_interval,
     )
 
+    torch.save(model.state_dict(), Path(wandb.run.dir) / 'model.pt')
     if args.output:
         torch.save(model, args.output)
 
@@ -114,11 +120,6 @@ def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
 
 def train_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to a training command"
-    defaults = {
-        'glove_path': Path('./data/glove/glove.6B.50d.txt'),
-        'glove_dim': 50,
-    }
-
     parser.add_argument('--model', required=True,
                         help='Model to train')
     parser.add_argument('--mode', default='emotion',
@@ -137,16 +138,15 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--glove_train', action='store_true',
                         help='Whether to train GloVe embeddings')
     parser.add_argument('--output', help='Output path for saved model')
+    parser.add_argument('--lr', type=float, default=0.01,
+                        help='Optimiser (Adam) learning rate')
     parser.add_argument('--gpu', type=int, default=-1,
-                        help='Which GPU to use. Defaults to CPU.')
+                        help='Which GPU to use. Defaults to CPU')
+    parser.add_argument('--log_interval', type=int, default=10,
+                        help='Number of batches between each report to WandB')
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to an evaluation command"
-    defaults = {
-        'glove_path': Path('./data/glove/glove.6B.50d.txt'),
-        'glove_dim': 50,
-    }
-
     parser.add_argument('--model', required=True,
                         help='Model to train')
     parser.add_argument('--mode', default='emotion',
@@ -164,6 +164,8 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
 
 def main() -> None:
     "Main function. Parses CLI arguments for train/eval commands"
+    wandb.init(project='incubator')
+
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Task to perform', dest='command')
 
@@ -174,6 +176,7 @@ def main() -> None:
     eval_arguments(eval_parser)
 
     args = parser.parse_args()
+    wandb.config.update(args)
 
     if args.command == 'train':
         train_model(args)

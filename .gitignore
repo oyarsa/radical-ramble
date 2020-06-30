@@ -33,3 +33,4 @@ MANIFEST.in
 # Data and other artifacts
 data
 .ipynb_checkpoints
+wandb
