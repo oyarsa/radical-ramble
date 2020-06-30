@@ -13,6 +13,7 @@ import incubator.data as data
 from incubator.models.simple_classifier import glove_simple_classifier
 from incubator.train import train
 from incubator import util
+import incubator.config as config
 
 
 class Dataloaders(NamedTuple):
@@ -178,7 +179,6 @@ def main() -> None:
         train_model(args)
     elif args.command == 'eval':
         print('Evaluation not implemented yet')
-
 
 
 if __name__ == "__main__":
