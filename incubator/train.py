@@ -82,6 +82,7 @@ def dev_epoch(epoch: int,
                        desc=f'#{epoch} [Dev  ] acc: 0.000 loss: 0.000',
                        leave=True)
 
+    model.eval()
     with torch.no_grad():
         running_acc = 0.0
         running_loss = 0.0

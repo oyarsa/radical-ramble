@@ -12,6 +12,7 @@ import wandb
 import incubator.datasets.meld_linear_text_dataset as mltd
 import incubator.data as data
 from incubator.models.simple_classifier import glove_simple_classifier
+from incubator.models.linear_rnn_classifier import glove_linear_lstm_classifier
 from incubator.train import train
 from incubator import util
 from incubator.config import defaults
@@ -55,7 +56,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
 
 def load_data(args: argparse.Namespace) -> Dataloaders:
     "Loads data with the appropriate data format for the model"
-    mltd_based = ['simple_glove']
+    mltd_based = ['simple_glove', 'rnn_linear']
 
     if args.model in mltd_based:
         return load_mltd(args)
@@ -73,6 +74,8 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
 
     loaders = load_data(args)
 
+    model: nn.Module # type: ignore
+
     if args.model == 'simple_glove':
         train_data = loaders.trainloader.dataset
         assert isinstance(train_data, mltd.MeldLinearTextDataset)
@@ -84,6 +87,24 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             saved_glove_file = args.saved_glove_file
 
         model = glove_simple_classifier(
+            glove_path=args.glove_path,
+            glove_dim=args.glove_dim,
+            num_classes=num_classes,
+            vocab=train_data.vocab,
+            freeze=not args.glove_train,
+            saved_glove_file=saved_glove_file,
+        )
+    if args.model == 'rnn_linear':
+        train_data = loaders.trainloader.dataset
+        assert isinstance(train_data, mltd.MeldLinearTextDataset)
+
+        if not args.saved_glove_file:
+            glove_name = f'glove.{args.glove_dim}d.{args.model}.p'
+            saved_glove_file = Path(args.train_data).parent / glove_name
+        else:
+            saved_glove_file = args.saved_glove_file
+
+        model = glove_linear_lstm_classifier(
             glove_path=args.glove_path,
             glove_dim=args.glove_dim,
             num_classes=num_classes,
@@ -176,8 +197,6 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
 
 def main() -> None:
     "Main function. Parses CLI arguments for train/eval commands"
-    wandb.init(project='incubator')
-
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Task to perform', dest='command')
 
@@ -188,6 +207,8 @@ def main() -> None:
     eval_arguments(eval_parser)
 
     args = parser.parse_args()
+
+    wandb.init(project='incubator')
     wandb.config.update(args)
 
     if args.command == 'train':
