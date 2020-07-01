@@ -77,9 +77,8 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
         train_data = loaders.trainloader.dataset
         assert isinstance(train_data, mltd.MeldLinearTextDataset)
 
-
         if not args.saved_glove_file:
-            glove_name = f'glove.{args.glove_dim}d.p'
+            glove_name = f'glove.{args.glove_dim}d.{args.model}.p'
             saved_glove_file = Path(args.train_data).parent / glove_name
         else:
             saved_glove_file = args.saved_glove_file
