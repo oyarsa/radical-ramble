@@ -1,4 +1,4 @@
-"RnnClassifier model and associated helper functions"
+"SimpleClassifier model and associated helper functions"
 from typing import Union, TextIO, Optional
 from pathlib import Path
 import torch.nn as nn
@@ -7,25 +7,23 @@ from torch import Tensor
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
 
-class LinearRnnClassifier(nn.Module): # type: ignore
+class Simple(nn.Module): # type: ignore
     """
-    Simple RNN-based model from sequence of tokens to a class output
+    Simplest possible model from sequence of tokens to a class output
 
-        TokenIds -> Embedding -> RNN -> Dense -> Output
+        TokenIds -> Embedding -> Average -> Dense -> Output
 
-    Where RNN is a standard GRU/LSTM without attention.
+    Where `Average` is literally just averaging the embedding vectors into one.
     """
     def __init__(self,
                  embedding: nn.Embedding,
-                 rnn: nn.RNNBase,
                  num_classes: int):
-        super(LinearRnnClassifier, self).__init__()
+        super(Simple, self).__init__()
 
         self.embedding = embedding
-        self.rnn = rnn
 
         self.output = nn.Linear(
-            in_features=self.rnn.hidden_size,
+            in_features=self.embedding.embedding_dim,
             out_features=num_classes,
         )
 
@@ -36,32 +34,38 @@ class LinearRnnClassifier(nn.Module): # type: ignore
         """
         # (batch, seq_len, embedding_dim)
         embeddings = self.embedding(utteranceTokens)
-        # (batch, seq_len, hidden_dim)
-        rnn_out, _ = self.rnn(embeddings)
-        # (batch, hidden_dim)
-        utterance = rnn_out[:, -1, :]
+        # (batch, embedding_dim)
+        utterance = embeddings.mean(dim=1)
         # (batch, num_classes)
         output = self.output(utterance)
 
         return output
 
+def random_emb_simple(
+        vocab_size: int,
+        embedding_dim: int,
+        num_classes: int,
+    ) -> Simple:
+    "SimpleClassifier with randomly initialised embeddings layer"
+    embedding = nn.Embedding(
+        num_embeddings=vocab_size,
+        embedding_dim=embedding_dim,
+    )
 
-def glove_linear_lstm_classifier(
+    return Simple(
+        embedding=embedding,
+        num_classes=num_classes,
+    )
+
+def glove_simple(
         glove_path: Union[Path, TextIO],
         glove_dim: int,
         num_classes: int,
         vocab: Vocabulary,
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
-        rnn_hidden_size: int = 100,
-        rnn_num_layers: int = 1,
-        bidirectional: bool = False,
-        dropout: float = 0,
-    ) -> LinearRnnClassifier:
-    """
-    RnnClassifier with embedding layer initialised with GloVe.
-    RNN used is an LSTM.
-    """
+    ) -> Simple:
+    "SimpleClassifier with embedding layer initialised with GloVe"
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,
@@ -70,17 +74,8 @@ def glove_linear_lstm_classifier(
     )
 
     embedding = nn.Embedding.from_pretrained(glove, freeze=freeze)
-    lstm = nn.LSTM(
-        input_size=embedding.embedding_dim,
-        hidden_size=rnn_hidden_size,
-        num_layers=rnn_num_layers,
-        bidirectional=bidirectional,
-        dropout=dropout,
-        batch_first=True,
-    )
 
-    return LinearRnnClassifier(
+    return Simple(
         embedding=embedding,
         num_classes=num_classes,
-        rnn=lstm,
     )

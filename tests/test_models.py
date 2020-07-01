@@ -1,11 +1,14 @@
 from io import StringIO
 from torch.utils.data.dataloader import DataLoader
+import pytest
 
 from incubator import data, glove
-from incubator.models.simple_classifier import (
-    random_emb_simple_classifier,
-    glove_simple_classifier,
+from incubator.models.simple import (
+    random_emb_simple,
+    glove_simple,
 )
+from incubator.models.linear_rnn import glove_linear_lstm
+from incubator.models.linear_cnn import glove_linear_cnn
 from incubator.datasets.meld_linear_text_dataset import (
     MeldLinearTextDataset,
     meld_linear_text_daloader,
@@ -22,7 +25,7 @@ god 0.1 0.1 0.1
 """
 glove_dim = 3
 
-def test_simple_classifier() -> None:
+def test_random_simple() -> None:
     df = read_test_data()
     dataset = MeldLinearTextDataset(df, mode='emotion')
 
@@ -31,7 +34,7 @@ def test_simple_classifier() -> None:
         batch_size=batch_size,
     )
 
-    classifier = random_emb_simple_classifier(
+    classifier = random_emb_simple(
         vocab_size=dataset.vocab_size(),
         embedding_dim=embedding_dim,
         num_classes=num_classes,
@@ -42,7 +45,7 @@ def test_simple_classifier() -> None:
         assert predictions.shape == (batch_size, num_classes)
 
 
-def test_glove_classifier() -> None:
+def test_glove_simple() -> None:
     "Test if GloVe loader works with synthetic data"
     df = read_test_data()
     dataset = MeldLinearTextDataset(df, mode='emotion')
@@ -53,7 +56,7 @@ def test_glove_classifier() -> None:
         batch_size=batch_size,
     )
 
-    classifier = glove_simple_classifier(
+    classifier = glove_simple(
         glove_path=glove_file,
         glove_dim=glove_dim,
         num_classes=num_classes,
@@ -63,3 +66,67 @@ def test_glove_classifier() -> None:
     for batch in loader:
         predictions = classifier(batch.utterance_tokens)
         assert predictions.shape == (batch_size, num_classes)
+
+
+def test_linear_rnn() -> None:
+    "Test if Linear Rnn GloVe loader works with synthetic data"
+    df = read_test_data()
+    dataset = MeldLinearTextDataset(df, mode='emotion')
+    glove_file = StringIO(glove_str)
+
+    loader = meld_linear_text_daloader(
+        dataset=dataset,
+        batch_size=batch_size,
+    )
+
+    classifier = glove_linear_lstm(
+        glove_path=glove_file,
+        glove_dim=glove_dim,
+        num_classes=num_classes,
+        vocab=dataset.vocab,
+    )
+
+    for batch in loader:
+        predictions = classifier(batch.utterance_tokens)
+        assert predictions.shape == (batch_size, num_classes)
+
+
+def linear_cnn(batch_size: int) -> None:
+    "Test if Linear Cnn GloVe loader works with synthetic data"
+    df = read_test_data()
+    dataset = MeldLinearTextDataset(df, mode='emotion')
+    glove_file = StringIO(glove_str)
+
+    loader = meld_linear_text_daloader(
+        dataset=dataset,
+        batch_size=batch_size,
+    )
+
+    classifier = glove_linear_cnn(
+        glove_path=glove_file,
+        glove_dim=glove_dim,
+        num_classes=num_classes,
+        vocab=dataset.vocab,
+        filters=[2, 3, 4],
+        out_channels=3,
+    )
+
+    for batch in loader:
+        predictions = classifier(batch.utterance_tokens)
+        assert predictions.shape == (batch_size, num_classes)
+
+
+def test_linear_cnn() -> None:
+    "LinearCnn succeeds with appropriate batch size"
+    linear_cnn(batch_size)
+
+
+def test_linear_cnn_fails() -> None:
+    """
+    LinearCnnf ails with a given batch size. This happens when we have a
+    sentence with less characters than the largest filter size. This shouldn't
+    happen in a real environment because with larger batch sizes other sentences
+    will make up for it, but this behaviour is correct and should be documented.
+    """
+    with pytest.raises(RuntimeError):
+        linear_cnn(batch_size=1)

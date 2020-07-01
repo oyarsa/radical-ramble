@@ -4,14 +4,14 @@ from io import StringIO
 import wandb
 
 import incubator.datasets.meld_linear_text_dataset as mltd
-from incubator.models.simple_classifier import glove_simple_classifier
+from incubator.models.simple import glove_simple
 from incubator.util import set_seed
 from incubator.train import train
 
 import tests.test_models as tm
 from tests.helpers import read_test_data
 
-def test_train(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_train(monkeypatch: Any) -> None:
     set_seed(1000)
 
     def noop(arg: Any) -> None:
@@ -28,7 +28,7 @@ def test_train(monkeypatch: pytest.MonkeyPatch) -> None:
         batch_size=tm.batch_size,
     )
 
-    classifier = glove_simple_classifier(
+    classifier = glove_simple(
         glove_path=glove_file,
         glove_dim=tm.glove_dim,
         num_classes=tm.num_classes,
