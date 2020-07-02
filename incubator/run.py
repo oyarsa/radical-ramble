@@ -115,6 +115,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             rnn_hidden_size=args.rnn_hidden_size,
             rnn_num_layers=args.rnn_num_layers,
             bidirectional=args.rnn_bidirectional,
+            rnn_dropout=args.rnn_dropout,
         )
     elif args.model == 'linear_cnn':
         train_data = loaders.trainloader.dataset
@@ -129,6 +130,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             saved_glove_file=saved_glove_file,
             filters=filters,
             out_channels=args.cnn_out_channels,
+            dropout=args.dropout,
         )
     elif args.model == 'linear_cnn_rnn':
         train_data = loaders.trainloader.dataset
@@ -146,6 +148,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             rnn_hidden_size=args.rnn_hidden_size,
             rnn_num_layers=args.rnn_num_layers,
             bidirectional=args.rnn_bidirectional,
+            rnn_dropout=args.rnn_dropout,
         )
 
     print(f'\n{model}\n')
@@ -167,6 +170,12 @@ def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
     model = model_data.model
     wandb.watch(model)
 
+    weights: Optional[torch.Tensor]
+    if args.mode == 'emotion':
+        weights = torch.tensor([4.0, 15.0, 15.0, 3.0, 1.0, 6.0, 3.0])
+    else:
+        weights = None
+
     model = train(
         model=model,
         num_epochs=args.num_epochs,
@@ -175,6 +184,8 @@ def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
         gpu=args.gpu,
         log_interval=args.log_interval,
         learning_rate=args.lr,
+        weight_decay=args.weight_decay,
+        weights=weights,
     )
 
     torch.save(model.state_dict(), Path(wandb.run.dir) / 'model.pt')
@@ -204,8 +215,10 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--glove_train', action='store_true',
                         help='Whether to train GloVe embeddings')
     parser.add_argument('--output', help='Output path for saved model')
-    parser.add_argument('--lr', type=float, default=0.01,
+    parser.add_argument('--lr', type=float, default=0.001,
                         help='Optimiser (Adam) learning rate')
+    parser.add_argument('--weight_decay', type=float, default=1e-5,
+                        help='Weight decay factor for L2 regularisation')
     parser.add_argument('--gpu', type=int, default=-1,
                         help='Which GPU to use. Defaults to CPU')
     parser.add_argument('--log_interval', type=int, default=10,
@@ -222,6 +235,10 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Whether to have the RNN be bidirectional')
     parser.add_argument('--rnn_num_layers', type=int, default=1,
                         help='Number of stacked RNN layers')
+    parser.add_argument('--rnn_dropout', type=float, default=0,
+                        help='RNN dropout')
+    parser.add_argument('--dropout', type=float, default=0,
+                        help='General dropout')
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to an evaluation command"

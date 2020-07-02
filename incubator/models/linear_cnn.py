@@ -20,23 +20,24 @@ class LinearCnn(nn.Module): # type: ignore
                  num_classes: int,
                  filters: List[int],
                  out_channels: int,
+                 dropout: float = 0,
                  ):
         super(LinearCnn, self).__init__()
 
         self.embedding = embedding
 
         convs = []
-        pools = []
         for filter_size in filters:
             conv = nn.Conv2d(
                 in_channels=1, # just the word embedding as a channel
                 out_channels=out_channels,
-                kernel_size=(filter_size, self.embedding.embedding_dim)
+                kernel_size=(filter_size, self.embedding.embedding_dim),
+                padding=(filter_size - 1, 0),
             )
             convs.append(conv)
-            pools.append(nn.MaxPool1d(kernel_size=filter_size))
 
         self.convs = nn.ModuleList(convs)
+        self.dropout = nn.Dropout(dropout)
 
         self.output = nn.Linear(
             in_features=len(filters) * out_channels,
@@ -66,6 +67,7 @@ class LinearCnn(nn.Module): # type: ignore
         pooled = [x.squeeze(2) for x in pooled]
         # (batch, len(filters) * out_channels)
         utterance = torch.cat(pooled, dim=1)
+        utterance = self.dropout(utterance)
         # (batch, num_classes)
         output = self.output(utterance)
 
@@ -83,6 +85,7 @@ def random_emb_linear_cnn(
         num_classes: int,
         filters: List[int],
         out_channels: int,
+        dropout: float = 0,
     ) -> LinearCnn:
     "LinearCnn with randomly initialised embeddings layer"
     embedding = nn.Embedding(
@@ -95,6 +98,7 @@ def random_emb_linear_cnn(
         num_classes=num_classes,
         filters=filters,
         out_channels=out_channels,
+        dropout=dropout,
     )
 
 def glove_linear_cnn(
@@ -106,6 +110,7 @@ def glove_linear_cnn(
         out_channels: int,
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
+        dropout: float = 0,
     ) -> LinearCnn:
     "LinearCnn with embedding layer initialised with GloVe"
     glove = load_glove(
@@ -122,4 +127,5 @@ def glove_linear_cnn(
         num_classes=num_classes,
         filters=filters,
         out_channels=out_channels,
+        dropout=dropout,
     )

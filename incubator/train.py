@@ -136,8 +136,10 @@ def train(model: nn.Module, # type: ignore
           num_epochs: int = 10,
           gpu: int = -1,
           learning_rate: float = 0.01,
+          weight_decay: float = 1e-5,
           verbose=False,
           log_interval: int = 10,
+          weights: Optional[torch.Tensor] = None,
           ) -> nn.Module: # type: ignore
     "Performs training loop"
     if gpu < 0:
@@ -145,8 +147,11 @@ def train(model: nn.Module, # type: ignore
     else:
         device = torch.device(f'cuda:{gpu}')
 
+    if weights is not None:
+        weights = weights.to(device)
+
     model = model.to(device)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(weight=weights)
     optimiser = optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in range(num_epochs):

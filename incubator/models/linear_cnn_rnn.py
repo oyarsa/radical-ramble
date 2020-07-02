@@ -96,7 +96,7 @@ def glove_linear_cnn_lstm(
         rnn_hidden_size: int = 100,
         rnn_num_layers: int = 1,
         bidirectional: bool = False,
-        dropout: float = 0,
+        rnn_dropout: float = 0,
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
     ) -> LinearCnnRnn:
@@ -116,7 +116,7 @@ def glove_linear_cnn_lstm(
         hidden_size=rnn_hidden_size,
         num_layers=rnn_num_layers,
         bidirectional=bidirectional,
-        dropout=dropout,
+        dropout=rnn_dropout,
         batch_first=True,
     )
 

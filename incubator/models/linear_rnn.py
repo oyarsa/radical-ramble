@@ -56,7 +56,7 @@ def glove_linear_lstm(
         rnn_hidden_size: int = 100,
         rnn_num_layers: int = 1,
         bidirectional: bool = False,
-        dropout: float = 0,
+        rnn_dropout: float = 0,
     ) -> LinearRnn:
     """
     RnnClassifier with embedding layer initialised with GloVe.
@@ -75,7 +75,7 @@ def glove_linear_lstm(
         hidden_size=rnn_hidden_size,
         num_layers=rnn_num_layers,
         bidirectional=bidirectional,
-        dropout=dropout,
+        dropout=rnn_dropout,
         batch_first=True,
     )
 
