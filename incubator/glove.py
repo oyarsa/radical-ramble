@@ -5,7 +5,7 @@ import torch
 
 from incubator.data import Vocabulary
 
-TextFile = Union[Path, TextIO]
+TextFile = Union[Path, str, TextIO]
 
 def load_glove(
         input_file: TextFile,
@@ -19,7 +19,7 @@ def load_glove(
         return cast(torch.Tensor, torch.load(saved_glove_file))
 
     weight_matrix = torch.zeros(size=(vocab.vocab_size(), glove_dim))
-    if isinstance(input_file, Path):
+    if isinstance(input_file, (Path, str)):
         input_file = open(input_file, 'r')
 
     for line in input_file:

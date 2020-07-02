@@ -1,6 +1,5 @@
 "Training loop for torch models"
 from typing import Optional, NamedTuple
-import shutil
 
 import torch
 import torch.optim as optim
@@ -8,6 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import tqdm
 import wandb
+from sklearn.metrics import precision_recall_fscore_support
 
 
 class EpochResults(NamedTuple):
@@ -87,6 +87,10 @@ def dev_epoch(epoch: int,
         running_acc = 0.0
         running_loss = 0.0
         running_len = 0
+
+        y_pred = torch.tensor([]).long()
+        y_true = torch.tensor([]).long()
+
         for i, batch in enumerate(devloader):
             inputs = batch.utterance_tokens.to(device)
             labels = batch.labels.to(device)
@@ -94,15 +98,27 @@ def dev_epoch(epoch: int,
             outputs = model(inputs)
             loss = criterion(outputs, labels)
 
+            predictions = outputs.argmax(1)
+
             running_loss += loss.item()
-            running_acc += (outputs.argmax(1) == labels).sum().item()
+            running_acc += (predictions == labels).sum().item()
             running_len += outputs.shape[0]
+
+            y_pred = torch.cat((y_pred, predictions.cpu()))
+            y_true = torch.cat((y_true, labels.cpu()))
 
             cur_loss = running_loss / running_len
             cur_acc = running_acc / running_len
+            f1 = precision_recall_fscore_support(
+                y_true,
+                y_pred,
+                zero_division=1,
+                average='weighted',
+            )[2]
 
             pbar.set_description(f'#{epoch} [Dev  ] acc: {cur_acc:.3f} '
-                                 f'loss: {cur_loss:.3f}')
+                                 f'loss: {cur_loss:.3f} '
+                                 f'f1: {f1:.3f}')
             pbar.update(1)
 
             if i % log_interval == 0:
@@ -144,8 +160,5 @@ def train(model: nn.Module, # type: ignore
         if verbose:
             print(train_results)
             print(dev_results)
-
-        terminal_width, _ = shutil.get_terminal_size()
-        print('-' * terminal_width)
 
     return model

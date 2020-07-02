@@ -85,6 +85,8 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
     else:
         saved_glove_file = args.saved_glove_file
 
+    filters = [int(f) for f in args.cnn_filters.split(',')]
+
     model: nn.Module # type: ignore
 
     if args.model == 'simple':
@@ -110,6 +112,9 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             vocab=train_data.vocab,
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
+            rnn_hidden_size=args.rnn_hidden_size,
+            rnn_num_layers=args.rnn_num_layers,
+            bidirectional=args.rnn_bidirectional,
         )
     elif args.model == 'linear_cnn':
         train_data = loaders.trainloader.dataset
@@ -122,8 +127,8 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             vocab=train_data.vocab,
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
-            filters=[2, 3, 4],
-            out_channels=300,
+            filters=filters,
+            out_channels=args.cnn_out_channels,
         )
     elif args.model == 'linear_cnn_rnn':
         train_data = loaders.trainloader.dataset
@@ -136,9 +141,11 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             vocab=train_data.vocab,
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
-            filters=[3, 5],
-            out_channels=300,
-            rnn_hidden_size=200,
+            filters=filters,
+            out_channels=args.cnn_out_channels,
+            rnn_hidden_size=args.rnn_hidden_size,
+            rnn_num_layers=args.rnn_num_layers,
+            bidirectional=args.rnn_bidirectional,
         )
 
     print(f'\n{model}\n')
@@ -205,6 +212,16 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Number of batches between each report to WandB')
     parser.add_argument('--saved_glove_file',
                         help='Path to pre-processed GloVe file')
+    parser.add_argument('--cnn_filters', default='3',
+                        help='Filter sizes for CNN, separated by commas')
+    parser.add_argument('--cnn_out_channels', type=int, default=100,
+                        help='Number of output channels for CNN')
+    parser.add_argument('--rnn_hidden_size', type=int, default=200,
+                        help='Dimensionality of the RNN hidden layer / output')
+    parser.add_argument('--rnn_bidirectional', action='store_true',
+                        help='Whether to have the RNN be bidirectional')
+    parser.add_argument('--rnn_num_layers', type=int, default=1,
+                        help='Number of stacked RNN layers')
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to an evaluation command"

@@ -27,7 +27,6 @@ class LinearCnnRnn(nn.Module): # type: ignore
         self.rnn = rnn
 
         convs = []
-        pools = []
         for filter_size in filters:
             if filter_size % 2 == 0:
                 filter_size += 1 # filter_size has to be odd for the formula to work
@@ -37,10 +36,9 @@ class LinearCnnRnn(nn.Module): # type: ignore
                 in_channels=1, # just the word embedding as a channel
                 out_channels=out_channels,
                 kernel_size=(filter_size, self.embedding.embedding_dim),
-                padding=(padding, 0)
+                padding=(padding, 0),
             )
             convs.append(conv)
-            pools.append(nn.MaxPool1d(kernel_size=filter_size))
 
         self.convs = nn.ModuleList(convs)
 
