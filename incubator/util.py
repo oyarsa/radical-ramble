@@ -1,9 +1,14 @@
 "Utility functions that don't fit elsewhere."
-from typing import TypeVar, Callable, Iterable, List
+from typing import TypeVar, Callable, Iterable, List, Union
 import os
 import random
+import pathlib
+
 import torch
 import numpy as np
+import pandas
+
+DataFrameOrFilePath = Union[pandas.DataFrame, pathlib.Path, str]
 
 def set_seed(seed: int) -> None:
     """

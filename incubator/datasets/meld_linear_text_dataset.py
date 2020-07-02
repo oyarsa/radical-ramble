@@ -1,5 +1,5 @@
 "MeldLinearTextDataset class and assorted helper functions"
-from typing import NamedTuple, Union, List
+from typing import NamedTuple, List
 from pathlib import Path
 
 import pandas as pd
@@ -14,7 +14,7 @@ from incubator.data import (
     sentiment2index,
     emotion2index,
 )
-from incubator.util import flatten2list
+from incubator.util import flatten2list, DataFrameOrFilePath
 
 class LinearTextDatasetRow(NamedTuple):
     """
@@ -61,9 +61,9 @@ class MeldLinearTextDataset(Dataset): # type: ignore
     without considering dialogues.
     """
     def __init__(self,
-                 data: Union[pd.DataFrame, Path],
+                 data: DataFrameOrFilePath,
                  mode: str = 'sentiment'):
-        if isinstance(data, Path):
+        if isinstance(data, (Path, str)):
             data = pd.read_csv(data)
         self.data = preprocess_data(data)
         lst = list(self.data.Tokens)

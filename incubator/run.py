@@ -34,7 +34,7 @@ class ModelData(NamedTuple):
 def load_mltd(args: argparse.Namespace) -> Dataloaders:
     "Loads data for a MeldLinearText dataset"
     train_data = mltd.MeldLinearTextDataset(
-        data=Path(args.train_data),
+        data=args.train_data,
         mode=args.mode,
     )
 
@@ -44,7 +44,10 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
     )
 
     if args.dev_data:
-        dev_data = mltd.MeldLinearTextDataset(args.dev_data, mode=args.mode)
+        dev_data = mltd.MeldLinearTextDataset(
+            data=args.dev_data,
+            mode=args.mode,
+        )
         devloader: Optional[DataLoader] = mltd.meld_linear_text_daloader( # type: ignore
             dataset=dev_data,
             batch_size=args.batch_size,
@@ -122,6 +125,8 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             filters=[2, 3, 4],
             out_channels=3,
         )
+
+    print(f'\n{model}\n')
 
     return ModelData(model=model, data=loaders)
 
