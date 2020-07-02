@@ -14,6 +14,7 @@ import incubator.data as data
 from incubator.models.simple import glove_simple
 from incubator.models.linear_rnn import glove_linear_lstm
 from incubator.models.linear_cnn import glove_linear_cnn
+from incubator.models.linear_cnn_rnn import glove_linear_cnn_lstm
 from incubator.train import train
 from incubator import util
 from incubator.config import defaults
@@ -60,7 +61,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
 
 def load_data(args: argparse.Namespace) -> Dataloaders:
     "Loads data with the appropriate data format for the model"
-    mltd_based = ['simple', 'linear_rnn', 'linear_cnn']
+    mltd_based = ['simple', 'linear_rnn', 'linear_cnn', 'linear_cnn_rnn']
 
     if args.model in mltd_based:
         return load_mltd(args)
@@ -98,7 +99,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
         )
-    if args.model == 'linear_rnn':
+    elif args.model == 'linear_rnn':
         train_data = loaders.trainloader.dataset
         assert isinstance(train_data, mltd.MeldLinearTextDataset)
 
@@ -110,8 +111,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
         )
-
-    if args.model == 'linear_cnn':
+    elif args.model == 'linear_cnn':
         train_data = loaders.trainloader.dataset
         assert isinstance(train_data, mltd.MeldLinearTextDataset)
 
@@ -123,7 +123,22 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
             filters=[2, 3, 4],
-            out_channels=3,
+            out_channels=300,
+        )
+    elif args.model == 'linear_cnn_rnn':
+        train_data = loaders.trainloader.dataset
+        assert isinstance(train_data, mltd.MeldLinearTextDataset)
+
+        model = glove_linear_cnn_lstm(
+            glove_path=args.glove_path,
+            glove_dim=args.glove_dim,
+            num_classes=num_classes,
+            vocab=train_data.vocab,
+            freeze=not args.glove_train,
+            saved_glove_file=saved_glove_file,
+            filters=[3, 5],
+            out_channels=300,
+            rnn_hidden_size=200,
         )
 
     print(f'\n{model}\n')

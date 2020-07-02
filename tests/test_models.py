@@ -9,6 +9,7 @@ from incubator.models.simple import (
 )
 from incubator.models.linear_rnn import glove_linear_lstm
 from incubator.models.linear_cnn import glove_linear_cnn
+from incubator.models.linear_cnn_rnn import glove_linear_cnn_lstm
 from incubator.datasets.meld_linear_text_dataset import (
     MeldLinearTextDataset,
     meld_linear_text_daloader,
@@ -130,3 +131,28 @@ def test_linear_cnn_fails() -> None:
     """
     with pytest.raises(RuntimeError):
         linear_cnn(batch_size=1)
+
+
+def test_linear_cnn_rnn() -> None:
+    "Test if Linear Cnn GloVe loader works with synthetic data"
+    df = read_test_data()
+    dataset = MeldLinearTextDataset(df, mode='emotion')
+    glove_file = StringIO(glove_str)
+
+    loader = meld_linear_text_daloader(
+        dataset=dataset,
+        batch_size=3,
+    )
+
+    classifier = glove_linear_cnn_lstm(
+        glove_path=glove_file,
+        glove_dim=glove_dim,
+        num_classes=num_classes,
+        vocab=dataset.vocab,
+        filters=[3, 5],
+        out_channels=3,
+    )
+
+    for batch in loader:
+        predictions = classifier(batch.utterance_tokens)
+        assert predictions.shape == (batch_size, num_classes)
