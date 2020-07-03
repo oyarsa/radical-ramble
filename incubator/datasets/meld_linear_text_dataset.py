@@ -1,5 +1,5 @@
 "MeldLinearTextDataset class and assorted helper functions"
-from typing import NamedTuple, List, Optional
+from typing import NamedTuple, List, Optional, cast
 from pathlib import Path
 
 import pandas as pd
@@ -14,7 +14,7 @@ from incubator.data import (
     sentiment2index,
     emotion2index,
 )
-from incubator.util import flatten2list, DataFrameOrFilePath
+from incubator.util import DataFrameOrFilePath
 
 class LinearTextDatasetRow(NamedTuple):
     """
@@ -83,16 +83,18 @@ class MeldLinearTextDataset(Dataset): # type: ignore
 
     def __getitem__(self, index: int) -> LinearTextDatasetRow:
         row = self.data.iloc[index]
-        token_ids = self.vocab.map_tokens_to_ids(row.Tokens)
+        token_ids = self.vocab.map_tokens_to_ids(row['Tokens'])
 
         if self.mode == 'sentiment':
-            label = torch.tensor(sentiment2index[row.Sentiment])
+            sentiment = cast(str, row['Sentiment'])
+            label = torch.tensor(sentiment2index[sentiment])
         else:
-            label = torch.tensor(emotion2index[row.Emotion])
+            emotion = cast(str, row['Emotion'])
+            label = torch.tensor(emotion2index[emotion])
 
         return LinearTextDatasetRow(
-            dialogue_id=row.Dialogue_ID,
-            utterance_id=row.Utterance_ID,
+            dialogue_id=cast(int, row['Dialogue_ID']),
+            utterance_id=cast(int, row['Utterance_ID']),
             tokens=torch.tensor(token_ids),
             label=label,
         )

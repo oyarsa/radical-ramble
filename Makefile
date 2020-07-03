@@ -11,7 +11,8 @@ mypy:
 	poetry run mypy incubator
 
 lint:
-	poetry run pylint incubator
+	poetry run pylint incubator -j 0
+	poetry run pyright incubator
 
 run:
 	poetry run python -m incubator.run $(ARGS)

@@ -6,8 +6,8 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import tqdm
-import wandb
 from sklearn.metrics import precision_recall_fscore_support
+import wandb # type: ignore
 
 
 class EpochResults(NamedTuple):
@@ -61,7 +61,10 @@ def train_epoch(
         pbar.update(1)
 
         if i % log_interval == 0:
-            wandb.log({'Train accuracy': cur_acc, 'Train loss': cur_loss})
+            wandb.log({
+                'Train accuracy': cur_acc,
+                'Train loss': cur_loss,
+            })
 
 
     return EpochResults(
@@ -109,7 +112,7 @@ def dev_epoch(epoch: int,
 
             cur_loss = running_loss / running_len
             cur_acc = running_acc / running_len
-            f1 = precision_recall_fscore_support(
+            f1_score = precision_recall_fscore_support(
                 y_true,
                 y_pred,
                 zero_division=1,
@@ -118,11 +121,15 @@ def dev_epoch(epoch: int,
 
             pbar.set_description(f'#{epoch} [Dev  ] acc: {cur_acc:.3f} '
                                  f'loss: {cur_loss:.3f} '
-                                 f'f1: {f1:.3f}')
+                                 f'f1: {f1_score:.3f}')
             pbar.update(1)
 
             if i % log_interval == 0:
-                wandb.log({'Dev accuracy': cur_acc, 'Dev loss': cur_loss})
+                wandb.log({
+                    'Dev accuracy': cur_acc,
+                    'Dev loss': cur_loss,
+                    'Dev f1': f1_score,
+                })
 
     return EpochResults(
         accuracy=running_acc / len(devloader),
@@ -152,18 +159,19 @@ def train(model: nn.Module, # type: ignore
 
     model = model.to(device)
     criterion = nn.CrossEntropyLoss(weight=weights)
-    optimiser = optim.Adam(model.parameters(), lr=learning_rate)
+    optimiser = optim.Adam(model.parameters(), lr=learning_rate,
+                           weight_decay=weight_decay)
 
     for epoch in range(num_epochs):
         train_results = train_epoch(epoch, model, trainloader, criterion,
                                     optimiser, device, log_interval)
+        if verbose:
+            print(train_results)
 
         if devloader:
             dev_results = dev_epoch(epoch, model, devloader, criterion, device,
                                     log_interval)
-
-        if verbose:
-            print(train_results)
-            print(dev_results)
+            if verbose:
+                print(dev_results)
 
     return model

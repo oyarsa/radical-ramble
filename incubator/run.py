@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
-import wandb
+import wandb # type: ignore
 
 import incubator.datasets.meld_linear_text_dataset as mltd
 import incubator.data as data
@@ -151,6 +151,9 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             bidirectional=args.rnn_bidirectional,
             rnn_dropout=args.rnn_dropout,
         )
+    else:
+        print(f'Unknown model "{args.model}"')
+        sys.exit(1)
 
     print(f'\n{model}\n')
 

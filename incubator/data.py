@@ -1,13 +1,13 @@
 "Functions for manipulating the MELD dataset"
-from typing import Tuple, List, Dict, Set
-from pathlib import Path
+from typing import Tuple, List, Dict, Set, Iterable
 
 import pandas as pd
-import spacy
 import torch
 from spacy.lang.en import English
+from spacy.tokenizer import Tokenizer
+from spacy.tokens.doc import Doc
 
-from incubator.util import chain_func, flatten2list, DataFrameOrFilePath
+from incubator.util import chain_func, flatten2list
 
 sentiments = [
     'positive',
@@ -83,11 +83,11 @@ class Vocabulary:
             return self._index2word[index]
         return self._index2word[0]
 
-    def map_tokens_to_ids(self, tokens: List[str]) -> List[int]:
+    def map_tokens_to_ids(self, tokens: Iterable[str]) -> List[int]:
         "Maps a list of tokens to their list of ids"
         return [self.word2index(token) for token in tokens]
 
-    def map_ids_to_tokens(self, ids: List[int]) -> List[str]:
+    def map_ids_to_tokens(self, ids: Iterable[int]) -> List[str]:
         "Maps a list of ids back to the original tokens"
         return [self.index2word(id) for id in ids]
 
@@ -98,7 +98,7 @@ class Vocabulary:
     @classmethod
     def build_vocab(cls, data: pd.DataFrame) -> 'Vocabulary':
         "Builds vocabulary from pre-processed data"
-        words = flatten2list(data.Tokens)
+        words = flatten2list(data['Tokens'])
         return Vocabulary(words)
 
 
@@ -122,14 +122,14 @@ def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
 
 def lower_case(data: pd.DataFrame) -> pd.DataFrame:
     "Converts all strings to lower case"
-    data['Utterance'] = data.Utterance.str.lower()
+    data['Utterance'] = data['Utterance'].str.lower()
     return data
 
 
 def clean_unicode(data: pd.DataFrame) -> pd.DataFrame:
     "Replace the Unicode characters with their appropriate replacements."
     data['Utterance'] = (
-        data.Utterance.apply(lambda s: s.replace('\x92', "'"))
+        data['Utterance'].apply(lambda s: s.replace('\x92', "'"))
         .apply(lambda s: s.replace('\x85', ". "))
         .apply(lambda s: s.replace('\x97', " "))
         .apply(lambda s: s.replace('\x91', ""))
@@ -140,7 +140,7 @@ def clean_unicode(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def get_tokeniser() -> spacy.tokenizer.Tokenizer:
+def get_tokeniser() -> Tokenizer:
     """
     Create a Tokenizer with the default settings for English
     including punctuation rules and exceptions.
@@ -153,13 +153,13 @@ def get_tokeniser() -> spacy.tokenizer.Tokenizer:
 def tokenise(data: pd.DataFrame) -> pd.DataFrame:
     "Tokenises strings using the tokeniser from `get_tokeniser`"
     tokeniser = get_tokeniser()
-    data['Tokens'] = data.Utterance.apply(tokeniser)
+    data['Tokens'] = data['Utterance'].apply(tokeniser)
     return data
 
 
 def remove_punctuation(data: pd.DataFrame) -> pd.DataFrame:
     "Removes punctuation tokens"
-    def filter_punct(tokens: spacy.tokens.Doc) -> List[str]:
+    def filter_punct(tokens: Doc) -> List[str]:
         return [token.text for token in tokens if not token.is_punct]
-    data.Tokens = data.Tokens.apply(filter_punct)
+    data['Tokens'] = data['Tokens'].apply(filter_punct)
     return data
