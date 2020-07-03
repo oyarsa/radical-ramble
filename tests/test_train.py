@@ -20,11 +20,17 @@ def test_train(monkeypatch: Any) -> None:
     monkeypatch.setattr(wandb, 'log', noop)
 
     df = read_test_data()
-    dataset = mltd.MeldLinearTextDataset(df, mode='emotion')
+    train_dataset = mltd.MeldLinearTextDataset(df, mode='emotion')
+    dev_dataset = mltd.MeldLinearTextDataset(df, mode='emotion',
+                                             vocab=train_dataset.vocab)
     glove_file = StringIO(tm.glove_str)
 
-    loader = mltd.meld_linear_text_daloader(
-        dataset=dataset,
+    train_loader = mltd.meld_linear_text_daloader(
+        dataset=train_dataset,
+        batch_size=tm.batch_size,
+    )
+    dev_loader = mltd.meld_linear_text_daloader(
+        dataset=dev_dataset,
         batch_size=tm.batch_size,
     )
 
@@ -32,7 +38,7 @@ def test_train(monkeypatch: Any) -> None:
         glove_path=glove_file,
         glove_dim=tm.glove_dim,
         num_classes=tm.num_classes,
-        vocab=dataset.vocab,
+        vocab=train_dataset.vocab,
     )
 
-    train(model=classifier, trainloader=loader, devloader=loader)
+    train(model=classifier, trainloader=train_loader, devloader=dev_loader)

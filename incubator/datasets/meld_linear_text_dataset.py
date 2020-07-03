@@ -1,5 +1,5 @@
 "MeldLinearTextDataset class and assorted helper functions"
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Optional
 from pathlib import Path
 
 import pandas as pd
@@ -60,15 +60,22 @@ class MeldLinearTextDataset(Dataset): # type: ignore
     Dataset for simple, linear text. Utterances are considered separately,
     without considering dialogues.
     """
+    data: pd.DataFrame
+    vocab: Vocabulary
+    mode: str
+
     def __init__(self,
                  data: DataFrameOrFilePath,
+                 vocab: Optional[Vocabulary] = None,
                  mode: str = 'sentiment'):
         if isinstance(data, (Path, str)):
             data = pd.read_csv(data)
         self.data = preprocess_data(data)
-        lst = list(self.data.Tokens)
-        words = flatten2list(lst)
-        self.vocab = Vocabulary(words)
+
+        if vocab is None:
+            vocab = Vocabulary.build_vocab(self.data)
+        self.vocab = vocab
+
         self.mode = mode
 
     def __len__(self) -> int:

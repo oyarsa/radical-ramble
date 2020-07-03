@@ -1,12 +1,13 @@
 "Functions for manipulating the MELD dataset"
 from typing import Tuple, List, Dict, Set
+from pathlib import Path
 
 import pandas as pd
 import spacy
 import torch
 from spacy.lang.en import English
 
-from incubator.util import chain_func
+from incubator.util import chain_func, flatten2list, DataFrameOrFilePath
 
 sentiments = [
     'positive',
@@ -53,6 +54,11 @@ def get_word_types(words: List[str]) -> Set[str]:
 
 class Vocabulary:
     "Holds the indexes for converting between tokens and token ids"
+    pad_token: str
+    unk_token: str
+    _word2index: Dict[str, int]
+    _index2word: Dict[int, str]
+
     def __init__(
             self,
             words: List[str],
@@ -88,6 +94,12 @@ class Vocabulary:
     def vocab_size(self) -> int:
         "Total size of the vocabulary, i.e., number of words"
         return len(self._word2index)
+
+    @classmethod
+    def build_vocab(cls, data: pd.DataFrame) -> 'Vocabulary':
+        "Builds vocabulary from pre-processed data"
+        words = flatten2list(data.Tokens)
+        return Vocabulary(words)
 
 
 def one_hot(index: int, length: int) -> torch.Tensor:

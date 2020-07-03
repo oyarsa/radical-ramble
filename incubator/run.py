@@ -48,6 +48,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
         dev_data = mltd.MeldLinearTextDataset(
             data=args.dev_data,
             mode=args.mode,
+            vocab=train_data.vocab,
         )
         devloader: Optional[DataLoader] = mltd.meld_linear_text_daloader( # type: ignore
             dataset=dev_data,

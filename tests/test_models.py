@@ -92,7 +92,7 @@ def test_linear_rnn() -> None:
         assert predictions.shape == (batch_size, num_classes)
 
 
-def linear_cnn(batch_size: int) -> None:
+def test_linear_cnn() -> None:
     "Test if Linear Cnn GloVe loader works with synthetic data"
     df = read_test_data()
     dataset = MeldLinearTextDataset(df, mode='emotion')
@@ -115,22 +115,6 @@ def linear_cnn(batch_size: int) -> None:
     for batch in loader:
         predictions = classifier(batch.utterance_tokens)
         assert predictions.shape == (batch_size, num_classes)
-
-
-def test_linear_cnn() -> None:
-    "LinearCnn succeeds with appropriate batch size"
-    linear_cnn(batch_size)
-
-
-def test_linear_cnn_fails() -> None:
-    """
-    LinearCnnf ails with a given batch size. This happens when we have a
-    sentence with less characters than the largest filter size. This shouldn't
-    happen in a real environment because with larger batch sizes other sentences
-    will make up for it, but this behaviour is correct and should be documented.
-    """
-    with pytest.raises(RuntimeError):
-        linear_cnn(batch_size=1)
 
 
 def test_linear_cnn_rnn() -> None:
