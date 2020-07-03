@@ -31,6 +31,7 @@ emotion2index = {
     emotion: index for index, emotion in enumerate(emotions)
 }
 
+
 def build_indexes(
         word_types: Set[str],
         pad_token: str,

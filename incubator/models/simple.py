@@ -7,7 +7,8 @@ from torch import Tensor
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
 
-class Simple(nn.Module): # type: ignore
+
+class Simple(nn.Module):
     """
     Simplest possible model from sequence of tokens to a class output
 
@@ -41,11 +42,12 @@ class Simple(nn.Module): # type: ignore
 
         return output
 
+
 def random_emb_simple(
         vocab_size: int,
         embedding_dim: int,
         num_classes: int,
-    ) -> Simple:
+        ) -> Simple:
     "SimpleClassifier with randomly initialised embeddings layer"
     embedding = nn.Embedding(
         num_embeddings=vocab_size,
@@ -57,6 +59,7 @@ def random_emb_simple(
         num_classes=num_classes,
     )
 
+
 def glove_simple(
         glove_path: Union[Path, TextIO],
         glove_dim: int,
@@ -64,7 +67,7 @@ def glove_simple(
         vocab: Vocabulary,
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
-    ) -> Simple:
+        ) -> Simple:
     "SimpleClassifier with embedding layer initialised with GloVe"
     glove = load_glove(
         input_file=glove_path,

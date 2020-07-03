@@ -10,6 +10,7 @@ import pandas
 
 DataFrameOrFilePath = Union[pandas.DataFrame, pathlib.Path, str]
 
+
 def set_seed(seed: int) -> None:
     """
     This sets the seeds to everything, basically. Torch, CUDA, NumPy, stdlib
@@ -17,16 +18,17 @@ def set_seed(seed: int) -> None:
     """
 
     torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed) # type: ignore
-    torch.backends.cudnn.deterministic = True # type: ignore
-    torch.backends.cudnn.benchmark = False # type: ignore
-    np.random.seed(seed)
+    torch.cuda.manual_seed_all(seed)  # type: ignore
+    torch.backends.cudnn.deterministic = True  # type: ignore
+    torch.backends.cudnn.benchmark = False  # type: ignore
+    np.random.seed(seed)  # type: ignore
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 
-# pylint: disable=invalid-name
 T = TypeVar('T')
+
+
 def chain_func(initial_arg: T, *functions: Callable[[T], T]) -> T:
     """
     Chain-applies `functions`, starting with `initial_args` and using the
@@ -41,7 +43,7 @@ def chain_func(initial_arg: T, *functions: Callable[[T], T]) -> T:
 def flatten2list(iterable: Iterable[T]) -> List[T]:
     """
     # pylint: disable=line-too-long
-    Taken from https://symbiosisacademy.org/tutorial-index/python-flatten-nested-lists-tuples-sets/
+    Taken from https://symbiosisacademy.org/tutorial-index/python-flatten-nested-lists-tuples-sets/  # NOQA
     """
     gather = []
     for item in iterable:

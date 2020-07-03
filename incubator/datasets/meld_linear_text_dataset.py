@@ -16,6 +16,7 @@ from incubator.data import (
 )
 from incubator.util import DataFrameOrFilePath
 
+
 class LinearTextDatasetRow(NamedTuple):
     """
     Tuple to hold the fields for a given row of data in tensor form.
@@ -33,6 +34,7 @@ class LinearTextDatasetRow(NamedTuple):
                 f'  tokens: {self.tokens}\n'
                 f'  label: {self.label}'
                 )
+
 
 class LinearTextDatasetBatch(NamedTuple):
     """
@@ -55,7 +57,7 @@ class LinearTextDatasetBatch(NamedTuple):
                 )
 
 
-class MeldLinearTextDataset(Dataset): # type: ignore
+class MeldLinearTextDataset(Dataset):
     """
     Dataset for simple, linear text. Utterances are considered separately,
     without considering dialogues.
@@ -104,7 +106,9 @@ class MeldLinearTextDataset(Dataset): # type: ignore
         return self.vocab.vocab_size()
 
 
-def _padding_collate_fn(batch: List[LinearTextDatasetRow]) -> LinearTextDatasetBatch:
+def _padding_collate_fn(
+        batch: List[LinearTextDatasetRow]
+        ) -> LinearTextDatasetBatch:
     sorted_batch = sorted(batch, key=lambda row: -len(row.tokens))
     lengths = torch.tensor([len(item.tokens) for item in sorted_batch])
 
@@ -123,10 +127,11 @@ def _padding_collate_fn(batch: List[LinearTextDatasetRow]) -> LinearTextDatasetB
         labels=labels
     )
 
+
 def meld_linear_text_daloader(
         dataset: MeldLinearTextDataset,
         batch_size: int
-    ) -> DataLoader: # type: ignore
+        ) -> DataLoader:
     "Returns a DataLoader configured with the appropriate batching function"
     return DataLoader(
         dataset,

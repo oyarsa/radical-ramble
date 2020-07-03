@@ -11,7 +11,7 @@ mypy:
 	poetry run mypy incubator
 
 lint:
-	poetry run pylint incubator -j 0
+	poetry run flake8 incubator
 	poetry run pyright incubator
 
 run:

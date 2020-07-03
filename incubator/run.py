@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
-import wandb # type: ignore
+import wandb  # type: ignore
 
 import incubator.datasets.meld_linear_text_dataset as mltd
 import incubator.data as data
@@ -22,13 +22,13 @@ from incubator.config import defaults
 
 class Dataloaders(NamedTuple):
     "Training and Dev dataloaders"
-    trainloader: DataLoader # type: ignore
-    devloader: Optional[DataLoader] # type: ignore
+    trainloader: DataLoader
+    devloader: Optional[DataLoader]
 
 
 class ModelData(NamedTuple):
     "Structure for holding a model and its suitable data loaders"
-    model: nn.Module # type: ignore
+    model: nn.Module
     data: Dataloaders
 
 
@@ -50,7 +50,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
             mode=args.mode,
             vocab=train_data.vocab,
         )
-        devloader: Optional[DataLoader] = mltd.meld_linear_text_daloader( # type: ignore
+        devloader = mltd.meld_linear_text_daloader(
             dataset=dev_data,
             batch_size=args.batch_size,
         )
@@ -88,7 +88,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
 
     filters = [int(f) for f in args.cnn_filters.split(',')]
 
-    model: nn.Module # type: ignore
+    model: nn.Module
 
     if args.model == 'simple':
         train_data = loaders.trainloader.dataset
@@ -160,7 +160,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
     return ModelData(model=model, data=loaders)
 
 
-def train_model(args: argparse.Namespace) -> nn.Module: # type: ignore
+def train_model(args: argparse.Namespace) -> nn.Module:
     """
     Instantiates and initialises the model given in `args`. Also loads
     the appropriate dataset, using the paths given. Then trains the model.
@@ -244,6 +244,7 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--dropout', type=float, default=0,
                         help='General dropout')
 
+
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to an evaluation command"
     parser.add_argument('--model', required=True,
@@ -262,6 +263,7 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Which GPU to use. Defaults to CPU.')
     parser.add_argument('--saved_glove_file',
                         help='Path to pre-processed GloVe file')
+
 
 def main() -> None:
     "Main function. Parses CLI arguments for train/eval commands"

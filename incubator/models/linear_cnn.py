@@ -9,7 +9,8 @@ import torch.nn.functional as F
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
 
-class LinearCnn(nn.Module): # type: ignore
+
+class LinearCnn(nn.Module):
     """
     TextCnn model from sequence of tokens to a class output
 
@@ -29,7 +30,7 @@ class LinearCnn(nn.Module): # type: ignore
         convs = []
         for filter_size in filters:
             conv = nn.Conv2d(
-                in_channels=1, # just the word embedding as a channel
+                in_channels=1,  # just the word embedding as a channel
                 out_channels=out_channels,
                 kernel_size=(filter_size, self.embedding.embedding_dim),
                 padding=(filter_size - 1, 0),
@@ -44,8 +45,6 @@ class LinearCnn(nn.Module): # type: ignore
             out_features=num_classes,
         )
 
-
-    # pylint: disable=arguments-differ
     def forward(self, utteranceTokens: torch.Tensor) -> torch.Tensor:
         """
         utteranceTokens: (batch, seq_len, vocab_len)
@@ -86,7 +85,7 @@ def random_emb_linear_cnn(
         filters: List[int],
         out_channels: int,
         dropout: float = 0,
-    ) -> LinearCnn:
+        ) -> LinearCnn:
     "LinearCnn with randomly initialised embeddings layer"
     embedding = nn.Embedding(
         num_embeddings=vocab_size,
@@ -101,6 +100,7 @@ def random_emb_linear_cnn(
         dropout=dropout,
     )
 
+
 def glove_linear_cnn(
         glove_path: Union[Path, TextIO],
         glove_dim: int,
@@ -111,7 +111,7 @@ def glove_linear_cnn(
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
         dropout: float = 0,
-    ) -> LinearCnn:
+        ) -> LinearCnn:
     "LinearCnn with embedding layer initialised with GloVe"
     glove = load_glove(
         input_file=glove_path,

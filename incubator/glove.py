@@ -7,6 +7,7 @@ from incubator.data import Vocabulary
 
 TextFile = Union[Path, str, TextIO]
 
+
 def load_glove(
         input_file: TextFile,
         vocab: Vocabulary,

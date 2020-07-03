@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import tqdm
 from sklearn.metrics import precision_recall_fscore_support
-import wandb # type: ignore
+import wandb  # type: ignore
 
 
 class EpochResults(NamedTuple):
@@ -18,10 +18,10 @@ class EpochResults(NamedTuple):
 
 def train_epoch(
         epoch: int,
-        model: nn.Module, # type: ignore
-        trainloader: DataLoader, # type: ignore
+        model: nn.Module,
+        trainloader: DataLoader,
         criterion: nn.CrossEntropyLoss,
-        optimiser: optim.Optimizer, # type: ignore
+        optimiser: optim.Optimizer,
         device: torch.device,
         log_interval: int = 10,
         ) -> EpochResults:
@@ -66,7 +66,6 @@ def train_epoch(
                 'Train loss': cur_loss,
             })
 
-
     return EpochResults(
         accuracy=running_acc / len(trainloader),
         loss=running_loss / len(trainloader),
@@ -74,8 +73,8 @@ def train_epoch(
 
 
 def dev_epoch(epoch: int,
-              model: nn.Module, # type: ignore
-              devloader: DataLoader, # type: ignore
+              model: nn.Module,
+              devloader: DataLoader,
               criterion: nn.CrossEntropyLoss,
               device: torch.device,
               log_interval: int = 10,
@@ -137,9 +136,9 @@ def dev_epoch(epoch: int,
     )
 
 
-def train(model: nn.Module, # type: ignore
-          trainloader: DataLoader, # type: ignore
-          devloader: Optional[DataLoader] = None, # type: ignore
+def train(model: nn.Module,
+          trainloader: DataLoader,
+          devloader: Optional[DataLoader] = None,
           num_epochs: int = 10,
           gpu: int = -1,
           learning_rate: float = 0.01,
@@ -147,7 +146,7 @@ def train(model: nn.Module, # type: ignore
           verbose=False,
           log_interval: int = 10,
           weights: Optional[torch.Tensor] = None,
-          ) -> nn.Module: # type: ignore
+          ) -> nn.Module:
     "Performs training loop"
     if gpu < 0:
         device = torch.device('cpu')

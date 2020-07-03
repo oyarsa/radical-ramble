@@ -8,7 +8,8 @@ import torch.nn as nn
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
 
-class LinearCnnRnn(nn.Module): # type: ignore
+
+class LinearCnnRnn(nn.Module):
     """
     TextCnnRnn model from sequence of tokens to a class output
 
@@ -29,11 +30,12 @@ class LinearCnnRnn(nn.Module): # type: ignore
         convs = []
         for filter_size in filters:
             if filter_size % 2 == 0:
-                filter_size += 1 # filter_size has to be odd for the formula to work
-            padding = filter_size // 2 # to preserve the height of the input
+                # filter_size has to be odd for the formula to work
+                filter_size += 1
+            padding = filter_size // 2  # to preserve the height of the input
 
             conv = nn.Conv2d(
-                in_channels=1, # just the word embedding as a channel
+                in_channels=1,  # just the word embedding as a channel
                 out_channels=out_channels,
                 kernel_size=(filter_size, self.embedding.embedding_dim),
                 padding=(padding, 0),
@@ -47,8 +49,6 @@ class LinearCnnRnn(nn.Module): # type: ignore
             out_features=num_classes,
         )
 
-
-    # pylint: disable=arguments-differ
     def forward(self, utteranceTokens: torch.Tensor) -> torch.Tensor:
         """
         utteranceTokens: (batch, seq_len, vocab_len)
@@ -99,7 +99,7 @@ def glove_linear_cnn_lstm(
         rnn_dropout: float = 0,
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
-    ) -> LinearCnnRnn:
+        ) -> LinearCnnRnn:
     "LinearCnn with embedding layer initialised with GloVe"
 
     glove = load_glove(

@@ -7,7 +7,8 @@ from torch import Tensor
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
 
-class LinearRnn(nn.Module): # type: ignore
+
+class LinearRnn(nn.Module):
     """
     Simple RNN-based model from sequence of tokens to a class output
 
@@ -57,7 +58,7 @@ def glove_linear_lstm(
         rnn_num_layers: int = 1,
         bidirectional: bool = False,
         rnn_dropout: float = 0,
-    ) -> LinearRnn:
+        ) -> LinearRnn:
     """
     RnnClassifier with embedding layer initialised with GloVe.
     RNN used is an LSTM.
