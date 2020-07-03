@@ -1,0 +1,13 @@
+model: linear_cnn
+train_data: data/train/metadata.csv
+dev_data: data/train/metadata.csv
+gpu: 0
+num_epochs: 100
+batch_size: 50
+glove_path: data/glove/glove.6B.300d.txt
+glove_dim: 300
+lr: 0.001
+dropout: 0.5
+cnn_filters: 3,4,5
+cnn_out_channels: 100
+glove_train: True

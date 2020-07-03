@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+import configargparse
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
@@ -201,12 +202,14 @@ def train_model(args: argparse.Namespace) -> nn.Module:
 
 def train_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to a training command"
-    parser.add_argument('--model', required=True,
+    parser.add_argument('-c', '--config', is_config_file=True,
+                        help='Configuration file')
+    parser.add_argument('--model', default='simple',
                         help='Model to train')
     parser.add_argument('--mode', default='emotion',
                         help='Mode (emotion or sentiment)')
-    parser.add_argument('--train_data', help='Path to training data',
-                        required=True)
+    parser.add_argument('--train_data', default=defaults['train_data'],
+                        help='Path to training data')
     parser.add_argument('--dev_data', help='Path to dev data')
     parser.add_argument('--num_epochs', type=int, default=10,
                         help='Number of epochs to train')
@@ -247,12 +250,14 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
     "Adds arguments to an evaluation command"
-    parser.add_argument('--model', required=True,
+    parser.add_argument('-c', '--config', is_config_file=True,
+                        help='Configuration file')
+    parser.add_argument('--model', default='simple',
                         help='Model to train')
     parser.add_argument('--mode', default='emotion',
                         help='Mode (emotion or sentiment)')
-    parser.add_argument('--eval_data', help='Path to evaluation data',
-                        required=True)
+    parser.add_argument('--eval_data', default=defaults['eval_data'],
+                        help='Path to evaluation data')
     parser.add_argument('--batch_size', type=int, default=8,
                         help='Number of batches in evaluation')
     parser.add_argument('--glove_path', default=defaults['glove_path'],
@@ -267,7 +272,7 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
 
 def main() -> None:
     "Main function. Parses CLI arguments for train/eval commands"
-    parser = argparse.ArgumentParser()
+    parser = configargparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Task to perform', dest='command')
 
     train_parser = subparsers.add_parser('train', help='Train a model')
