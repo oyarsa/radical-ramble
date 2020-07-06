@@ -1,4 +1,3 @@
-import pytest
 from typing import Any
 from io import StringIO
 import wandb
@@ -10,6 +9,7 @@ from incubator.train import train
 
 import tests.test_models as tm
 from tests.helpers import read_test_data
+
 
 def test_train(monkeypatch: Any) -> None:
     set_seed(1000)

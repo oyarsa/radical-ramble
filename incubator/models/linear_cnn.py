@@ -1,5 +1,5 @@
 "TextCnn model and associated helper functions"
-from typing import Union, TextIO, Optional, List
+from typing import Union, TextIO, Optional, List, Tuple
 from pathlib import Path
 
 import torch
@@ -8,9 +8,10 @@ import torch.nn.functional as F
 
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
+from incubator.models.base_model import BaseModel
 
 
-class LinearCnn(nn.Module):
+class LinearCnn(BaseModel):
     """
     TextCnn model from sequence of tokens to a class output
 
@@ -45,7 +46,9 @@ class LinearCnn(nn.Module):
             out_features=num_classes,
         )
 
-    def forward(self, utteranceTokens: torch.Tensor) -> torch.Tensor:
+    def forward(self, utteranceTokens: torch.Tensor,
+                label: Optional[torch.Tensor] = None,
+                ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
         utteranceTokens: (batch, seq_len, vocab_len)
         """
@@ -70,7 +73,7 @@ class LinearCnn(nn.Module):
         # (batch, num_classes)
         output = self.output(utterance)
 
-        return output
+        return output, self.loss(output, label)
 
         # [1] We need to use the functional variant of MaxPool1d because the
         # kernel_size will vary. This happens because we want to cover the

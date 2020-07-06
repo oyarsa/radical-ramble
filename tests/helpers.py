@@ -1,5 +1,6 @@
+# flake8: NOQA
+from typing import cast
 from io import StringIO
-from pathlib import Path
 import pandas as pd
 
 test_data_str = """
@@ -15,6 +16,8 @@ test_tokens = [
     ['or', 'or', 'we', 'could', 'go', 'to', 'the', 'bank', 'close', 'our', 'accounts', 'and', 'cut', 'them', 'off', 'at', 'the', 'source'],
 ]
 
+
 def read_test_data() -> pd.DataFrame:
     raw_data = StringIO(test_data_str)
-    return pd.read_csv(raw_data)
+    df = pd.read_csv(raw_data)
+    return cast(pd.DataFrame, df)

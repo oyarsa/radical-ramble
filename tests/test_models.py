@@ -1,8 +1,6 @@
 from io import StringIO
-from torch.utils.data.dataloader import DataLoader
-import pytest
 
-from incubator import data, glove
+from incubator import data
 from incubator.models.simple import (
     random_emb_simple,
     glove_simple,
@@ -14,7 +12,7 @@ from incubator.datasets.meld_linear_text_dataset import (
     MeldLinearTextDataset,
     meld_linear_text_daloader,
 )
-from tests.helpers import read_test_data, test_tokens
+from tests.helpers import read_test_data
 
 batch_size = 3
 embedding_dim = 50
@@ -25,6 +23,7 @@ god 0.1 0.1 0.1
 's 0.1 0.1 0.2
 """
 glove_dim = 3
+
 
 def test_random_simple() -> None:
     df = read_test_data()
@@ -42,7 +41,7 @@ def test_random_simple() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utterance_tokens)
+        predictions, _ = classifier(batch.utterance_tokens, batch.labels)
         assert predictions.shape == (batch_size, num_classes)
 
 
@@ -65,7 +64,7 @@ def test_glove_simple() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utterance_tokens)
+        predictions, _ = classifier(batch.utterance_tokens, batch.labels)
         assert predictions.shape == (batch_size, num_classes)
 
 
@@ -88,7 +87,7 @@ def test_linear_rnn() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utterance_tokens)
+        predictions, _ = classifier(batch.utterance_tokens, batch.labels)
         assert predictions.shape == (batch_size, num_classes)
 
 
@@ -113,7 +112,7 @@ def test_linear_cnn() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utterance_tokens)
+        predictions, _ = classifier(batch.utterance_tokens, batch.labels)
         assert predictions.shape == (batch_size, num_classes)
 
 
@@ -138,5 +137,5 @@ def test_linear_cnn_rnn() -> None:
     )
 
     for batch in loader:
-        predictions = classifier(batch.utterance_tokens)
+        predictions, _ = classifier(batch.utterance_tokens, batch.labels)
         assert predictions.shape == (batch_size, num_classes)

@@ -1,14 +1,15 @@
 "RnnClassifier model and associated helper functions"
-from typing import Union, TextIO, Optional
+from typing import Union, TextIO, Optional, Tuple
 from pathlib import Path
 import torch.nn as nn
 from torch import Tensor
 
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
+from incubator.models.base_model import BaseModel
 
 
-class LinearRnn(nn.Module):
+class LinearRnn(BaseModel):
     """
     Simple RNN-based model from sequence of tokens to a class output
 
@@ -31,7 +32,9 @@ class LinearRnn(nn.Module):
         )
 
     # pylint: disable=arguments-differ
-    def forward(self, utteranceTokens: Tensor) -> Tensor:
+    def forward(self, utteranceTokens: Tensor,
+                label: Optional[Tensor] = None,
+                ) -> Tuple[Tensor, Optional[Tensor]]:
         """
         utteranceTokens: (batch, seq_len, vocab_len)
         """
@@ -44,7 +47,7 @@ class LinearRnn(nn.Module):
         # (batch, num_classes)
         output = self.output(utterance)
 
-        return output
+        return output, self.loss(output, label)
 
 
 def glove_linear_lstm(

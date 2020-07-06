@@ -1,5 +1,5 @@
 "TextCnnRnn model and associated helper functions"
-from typing import Union, TextIO, Optional, List
+from typing import Union, TextIO, Optional, List, Tuple
 from pathlib import Path
 
 import torch
@@ -7,9 +7,10 @@ import torch.nn as nn
 
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
+from incubator.models.base_model import BaseModel
 
 
-class LinearCnnRnn(nn.Module):
+class LinearCnnRnn(BaseModel):
     """
     TextCnnRnn model from sequence of tokens to a class output
 
@@ -49,7 +50,9 @@ class LinearCnnRnn(nn.Module):
             out_features=num_classes,
         )
 
-    def forward(self, utteranceTokens: torch.Tensor) -> torch.Tensor:
+    def forward(self, utteranceTokens: torch.Tensor,
+                label: Optional[torch.Tensor] = None,
+                ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
         utteranceTokens: (batch, seq_len, vocab_len)
         """
@@ -75,7 +78,7 @@ class LinearCnnRnn(nn.Module):
         # (batch, num_classes)
         output = self.output(utterance)
 
-        return output
+        return output, self.loss(output, label)
 
         # [1] As height_in = seq_len, we're using height_out as the
         # 'sequence length' for the RNN

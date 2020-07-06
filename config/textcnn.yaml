@@ -1,6 +1,6 @@
 model: linear_cnn
 train_data: data/train/metadata.csv
-dev_data: data/train/metadata.csv
+dev_data: data/dev/metadata.csv
 gpu: 0
 num_epochs: 100
 batch_size: 50

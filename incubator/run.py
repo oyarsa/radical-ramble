@@ -19,6 +19,7 @@ from incubator.models.linear_cnn_rnn import glove_linear_cnn_lstm
 from incubator.train import train
 from incubator import util
 from incubator.config import defaults
+from incubator.models.base_model import BaseModel
 
 
 class Dataloaders(NamedTuple):
@@ -29,7 +30,7 @@ class Dataloaders(NamedTuple):
 
 class ModelData(NamedTuple):
     "Structure for holding a model and its suitable data loaders"
-    model: nn.Module
+    model: BaseModel
     data: Dataloaders
 
 
@@ -89,7 +90,7 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
 
     filters = [int(f) for f in args.cnn_filters.split(',')]
 
-    model: nn.Module
+    model: BaseModel
 
     if args.model == 'simple':
         train_data = loaders.trainloader.dataset

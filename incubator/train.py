@@ -9,6 +9,8 @@ import tqdm
 from sklearn.metrics import precision_recall_fscore_support
 import wandb  # type: ignore
 
+from incubator.models.base_model import BaseModel
+
 
 class EpochResults(NamedTuple):
     "Results for a given epoch"
@@ -18,9 +20,8 @@ class EpochResults(NamedTuple):
 
 def train_epoch(
         epoch: int,
-        model: nn.Module,
+        model: BaseModel,
         trainloader: DataLoader,
-        criterion: nn.CrossEntropyLoss,
         optimiser: optim.Optimizer,
         device: torch.device,
         log_interval: int = 10,
@@ -44,8 +45,7 @@ def train_epoch(
         labels = batch.labels.to(device)
 
         # forward + backward + optim pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
+        outputs, loss = model(inputs, labels)
         loss.backward()
         optimiser.step()
 
@@ -73,9 +73,8 @@ def train_epoch(
 
 
 def dev_epoch(epoch: int,
-              model: nn.Module,
+              model: BaseModel,
               devloader: DataLoader,
-              criterion: nn.CrossEntropyLoss,
               device: torch.device,
               log_interval: int = 10,
               ) -> EpochResults:
@@ -97,8 +96,7 @@ def dev_epoch(epoch: int,
             inputs = batch.utterance_tokens.to(device)
             labels = batch.labels.to(device)
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            outputs, loss = model(inputs, labels)
 
             predictions = outputs.argmax(1)
 
@@ -136,7 +134,7 @@ def dev_epoch(epoch: int,
     )
 
 
-def train(model: nn.Module,
+def train(model: BaseModel,
           trainloader: DataLoader,
           devloader: Optional[DataLoader] = None,
           num_epochs: int = 10,
@@ -153,22 +151,22 @@ def train(model: nn.Module,
     else:
         device = torch.device(f'cuda:{gpu}')
 
-    if weights is not None:
-        weights = weights.to(device)
-
     model = model.to(device)
-    criterion = nn.CrossEntropyLoss(weight=weights)
+
+    if weights is not None:
+        model.set_weights(weights.to(device))
+
     optimiser = optim.Adam(model.parameters(), lr=learning_rate,
                            weight_decay=weight_decay)
 
     for epoch in range(num_epochs):
-        train_results = train_epoch(epoch, model, trainloader, criterion,
-                                    optimiser, device, log_interval)
+        train_results = train_epoch(epoch, model, trainloader, optimiser,
+                                    device, log_interval)
         if verbose:
             print(train_results)
 
         if devloader:
-            dev_results = dev_epoch(epoch, model, devloader, criterion, device,
+            dev_results = dev_epoch(epoch, model, devloader, device,
                                     log_interval)
             if verbose:
                 print(dev_results)
