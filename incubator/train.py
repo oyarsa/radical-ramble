@@ -1,5 +1,5 @@
 "Training loop for torch models"
-from typing import Optional, NamedTuple
+from typing import Optional, NamedTuple, Tuple
 
 import torch
 import torch.optim as optim
@@ -18,6 +18,50 @@ class EpochResults(NamedTuple):
     loss: float
 
 
+def calc_accuracy(
+        outputs: torch.Tensor,
+        labels: torch.Tensor,
+        mask: torch.Tensor,
+        ) -> float:
+    predictions = outputs.argmax(-1)
+
+    predictions = predictions * mask
+    labels = labels * mask
+
+    results = predictions == labels
+
+    acc = results.sum().item()
+    return acc
+
+
+def get_predictions(
+        y_pred: torch.Tensor,
+        y_true: torch.Tensor,
+        new_pred: torch.Tensor,
+        new_true: torch.Tensor,
+        mask: torch.Tensor,
+        ) -> Tuple[torch.Tensor, torch.Tensor]:
+    dimensions = len(mask.shape)
+
+    if dimensions == 1:
+        y_pred = torch.cat((y_pred, new_pred.cpu()))
+        y_true = torch.cat((y_true, new_true.cpu()))
+        return y_pred, y_true
+
+    result_pred = []
+    result_true = []
+
+    for i in range(y_pred.shape[0]):
+        for j in range(y_pred.shape[1]):
+            if mask[i, j] == 1:
+                result_pred.append(new_pred[i, j].item())
+                result_true.append(new_true[i, j].item())
+
+    result_pred = torch.tensor(result_pred)
+    result_true = torch.tensor(result_true)
+    return result_pred, result_true
+
+
 def train_epoch(
         epoch: int,
         model: BaseModel,
@@ -30,6 +74,7 @@ def train_epoch(
     running_loss = 0.0
     running_acc = 0.0
     running_len = 0
+    running_acc_other = 0.0
 
     pbar = tqdm.trange(len(trainloader),
                        desc=f'#{epoch} [Train] acc: 0.000 loss: 0.000',
@@ -41,17 +86,21 @@ def train_epoch(
         optimiser.zero_grad()
 
         # get input and gold label
-        inputs = batch.utterance_tokens.to(device)
+        inputs = batch.tokens.to(device)
         labels = batch.labels.to(device)
+        masks = batch.masks.to(device)
 
         # forward + backward + optim pass
-        outputs, loss = model(inputs, labels)
+        outputs, loss = model(inputs, masks, labels)
         loss.backward()
         optimiser.step()
 
         running_loss += loss.item()
-        running_acc += (outputs.argmax(1) == labels).sum().item()
-        running_len += outputs.shape[0]
+        running_acc += calc_accuracy(outputs, labels, masks)
+        running_len += masks.nonzero().shape[0]
+
+        running_acc_other += (outputs.argmax(1) == labels).sum().item()
+        print(running_acc, running_acc_other)
 
         cur_loss = running_loss / running_len
         cur_acc = running_acc / running_len
@@ -67,8 +116,8 @@ def train_epoch(
             })
 
     return EpochResults(
-        accuracy=running_acc / len(trainloader),
-        loss=running_loss / len(trainloader),
+        accuracy=running_acc / running_len,
+        loss=running_loss / running_len,
     )
 
 
@@ -93,19 +142,20 @@ def dev_epoch(epoch: int,
         y_true = torch.tensor([]).long()
 
         for i, batch in enumerate(devloader):
-            inputs = batch.utterance_tokens.to(device)
+            inputs = batch.tokens.to(device)
             labels = batch.labels.to(device)
+            masks = batch.masks.to(device)
 
-            outputs, loss = model(inputs, labels)
+            outputs, loss = model(inputs, masks, labels)
 
             predictions = outputs.argmax(1)
 
             running_loss += loss.item()
-            running_acc += (predictions == labels).sum().item()
-            running_len += outputs.shape[0]
+            running_acc += calc_accuracy(outputs, labels, masks)
+            running_len += masks.nonzero().shape[0]
 
-            y_pred = torch.cat((y_pred, predictions.cpu()))
-            y_true = torch.cat((y_true, labels.cpu()))
+            y_pred, y_true = get_predictions(y_pred, y_true, predictions,
+                                             labels, masks)
 
             cur_loss = running_loss / running_len
             cur_acc = running_acc / running_len
@@ -129,8 +179,8 @@ def dev_epoch(epoch: int,
                 })
 
     return EpochResults(
-        accuracy=running_acc / len(devloader),
-        loss=running_loss / len(devloader),
+        accuracy=running_acc / running_len,
+        loss=running_loss / running_len,
     )
 
 

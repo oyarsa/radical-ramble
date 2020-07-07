@@ -130,7 +130,7 @@ def test_linear_dataloader() -> None:
         assert batch.utterance_ids.equal(torch.tensor([0, 0, 1]))
         assert batch.labels.equal(torch.tensor([1, 2, 2]))
         assert batch.lengths.equal(torch.tensor([length2, length0, length1]))
-        assert all(len(seq) == max_length for seq in batch.utterance_tokens)
+        assert all(len(seq) == max_length for seq in batch.tokens)
 
 
 def test_contextual_dataset() -> None:
@@ -141,14 +141,14 @@ def test_contextual_dataset() -> None:
 
     assert dataset[0].dialogue_id == 0
     assert dataset[0].labels.equal(torch.tensor([6, 5]))
-    assert len(dataset[0].utterance_tokens) == 2
-    assert len(dataset[0].utterance_tokens[0]) == max_len0
-    assert len(dataset[0].utterance_tokens[1]) == max_len0
+    assert len(dataset[0].tokens) == 2
+    assert len(dataset[0].tokens[0]) == max_len0
+    assert len(dataset[0].tokens[1]) == max_len0
 
     assert dataset[1].dialogue_id == 1
     assert dataset[1].labels.equal(torch.tensor([4]))
-    assert len(dataset[1].utterance_tokens) == 1
-    assert len(dataset[1].utterance_tokens[0]) == len(test_tokens[2])
+    assert len(dataset[1].tokens) == 1
+    assert len(dataset[1].tokens[0]) == len(test_tokens[2])
 
 
 def test_contextual_dataloader() -> None:
@@ -168,4 +168,4 @@ def test_contextual_dataloader() -> None:
         assert batch.labels.equal(torch.tensor([[4, 0], [6, 5]]))
         assert batch.lengths.equal(torch.tensor([[length2, 0],
                                                  [length0, length1]]))
-        assert batch.dialogue_tokens.shape == (2, 2, max_length)
+        assert batch.tokens.shape == (2, 2, max_length)

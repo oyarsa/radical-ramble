@@ -11,11 +11,13 @@ from torch.utils.data.dataloader import DataLoader
 import wandb  # type: ignore
 
 import incubator.datasets.meld_linear_text_dataset as mltd
+import incubator.datasets.meld_contextual_text_dataset as mctd
 import incubator.data as data
 from incubator.models.simple import glove_simple
 from incubator.models.linear_rnn import glove_linear_lstm
 from incubator.models.linear_cnn import glove_linear_cnn
 from incubator.models.linear_cnn_rnn import glove_linear_cnn_lstm
+from incubator.models.contextual_simple import glove_contextual_simple
 from incubator.train import train
 from incubator import util
 from incubator.config import defaults
@@ -32,6 +34,34 @@ class ModelData(NamedTuple):
     "Structure for holding a model and its suitable data loaders"
     model: BaseModel
     data: Dataloaders
+
+
+def load_mctd(args: argparse.Namespace) -> Dataloaders:
+    "Loads data for a MeldLinearText dataset"
+    train_data = mctd.MeldContextualTextDataset(
+        data=args.train_data,
+        mode=args.mode,
+    )
+
+    trainloader = mctd.meld_contextual_text_daloader(
+        dataset=train_data,
+        batch_size=args.batch_size,
+    )
+
+    if args.dev_data:
+        dev_data = mctd.MeldContextualTextDataset(
+            data=args.dev_data,
+            mode=args.mode,
+            vocab=train_data.vocab,
+        )
+        devloader = mctd.meld_contextual_text_daloader(
+            dataset=dev_data,
+            batch_size=args.batch_size,
+        )
+    else:
+        devloader = None
+
+    return Dataloaders(trainloader=trainloader, devloader=devloader)
 
 
 def load_mltd(args: argparse.Namespace) -> Dataloaders:
@@ -65,9 +95,12 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
 def load_data(args: argparse.Namespace) -> Dataloaders:
     "Loads data with the appropriate data format for the model"
     mltd_based = ['simple', 'linear_rnn', 'linear_cnn', 'linear_cnn_rnn']
+    mctd_based = ['contextual_simple']
 
     if args.model in mltd_based:
         return load_mltd(args)
+    if args.model in mctd_based:
+        return load_mctd(args)
 
     print(f'Unknown model "{args.model}"')
     sys.exit(1)
@@ -152,6 +185,18 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             rnn_num_layers=args.rnn_num_layers,
             bidirectional=args.rnn_bidirectional,
             rnn_dropout=args.rnn_dropout,
+        )
+    elif args.model == 'contextual_simple':
+        train_data = loaders.trainloader.dataset
+        assert isinstance(train_data, mctd.MeldContextualTextDataset)
+
+        model = glove_contextual_simple(
+            glove_path=args.glove_path,
+            glove_dim=args.glove_dim,
+            num_classes=num_classes,
+            vocab=train_data.vocab,
+            freeze=not args.glove_train,
+            saved_glove_file=saved_glove_file,
         )
     else:
         print(f'Unknown model "{args.model}"')

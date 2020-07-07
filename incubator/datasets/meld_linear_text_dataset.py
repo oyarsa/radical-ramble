@@ -42,18 +42,20 @@ class LinearTextDatasetBatch(NamedTuple):
     Represents a whole batch. Tensors are batch-first.
     """
     dialogue_ids: torch.Tensor
-    utterance_tokens: torch.Tensor
+    tokens: torch.Tensor
     utterance_ids: torch.Tensor
     labels: torch.Tensor
     lengths: torch.Tensor
+    masks: torch.Tensor
 
     def __str__(self) -> str:
         return (f'DatasetBatch\n'
                 f'  dialogue_ids: {self.dialogue_ids}\n'
                 f'  utterance_ids: {self.utterance_ids}\n'
-                f'  utterance_tokens:\n    {self.utterance_tokens}\n'
+                f'  tokens:\n    {self.tokens}\n'
                 f'  labels:\n    {self.labels}\n'
-                f'  lengths: {self.lengths}'
+                f'  lengths: {self.lengths}\n'
+                f'  masks: {self.masks}'
                 )
 
 
@@ -118,13 +120,15 @@ def _padding_collate_fn(
 
     tokens_list = [item.tokens for item in sorted_batch]
     utterance_tokens = pad_sequence(tokens_list, batch_first=True)
+    masks = torch.ones(len(batch)).long()
 
     return LinearTextDatasetBatch(
         lengths=lengths,
         utterance_ids=utterance_ids,
         dialogue_ids=dialogue_ids,
-        utterance_tokens=utterance_tokens,
-        labels=labels
+        tokens=utterance_tokens,
+        labels=labels,
+        masks=masks,
     )
 
 

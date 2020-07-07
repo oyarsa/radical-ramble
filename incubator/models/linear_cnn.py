@@ -46,7 +46,9 @@ class LinearCnn(BaseModel):
             out_features=num_classes,
         )
 
-    def forward(self, utteranceTokens: torch.Tensor,
+    def forward(self,
+                utteranceTokens: torch.Tensor,
+                mask: torch.Tensor,
                 label: Optional[torch.Tensor] = None,
                 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
@@ -73,7 +75,7 @@ class LinearCnn(BaseModel):
         # (batch, num_classes)
         output = self.output(utterance)
 
-        return output, self.loss(output, label)
+        return output, self.loss(output, mask, label)
 
         # [1] We need to use the functional variant of MaxPool1d because the
         # kernel_size will vary. This happens because we want to cover the

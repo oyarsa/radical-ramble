@@ -32,7 +32,7 @@ class ContextualInstance(NamedTuple):
     dialogue_id: int
     labels: torch.Tensor
     lengths: torch.Tensor
-    utterance_tokens: torch.Tensor
+    tokens: torch.Tensor
 
 
 class ContextualTextDatasetBatch(NamedTuple):
@@ -41,15 +41,15 @@ class ContextualTextDatasetBatch(NamedTuple):
     Represents a whole batch. Tensors are batch-first.
     """
     dialogue_ids: torch.Tensor
-    dialogue_tokens: torch.Tensor
-    dialogue_masks: torch.Tensor
+    tokens: torch.Tensor
+    masks: torch.Tensor
     labels: torch.Tensor
     lengths: torch.Tensor
 
     def __str__(self) -> str:
         return (f'DatasetBatch\n'
                 f'  dialogue_ids: {self.dialogue_ids}\n'
-                f'  utterance_tokens:\n    {self.dialogue_tokens}\n'
+                f'  tokens:\n    {self.tokens}\n'
                 f'  labels:\n    {self.labels}\n'
                 f'  lengths: {self.lengths}'
                 )
@@ -104,7 +104,7 @@ class MeldContextualTextDataset(Dataset):
 
         return ContextualInstance(
             dialogue_id=index,
-            utterance_tokens=pad_sequence(utterances, batch_first=True),
+            tokens=pad_sequence(utterances, batch_first=True),
             labels=torch.tensor(labels),
             lengths=torch.tensor(lengths),
         )
@@ -122,7 +122,7 @@ def _extend_sequence(tensor: torch.Tensor, new_size: Tuple[int, int],
     new_tensor[:seq_len, :num_tokens] = tensor
 
     mask = torch.ones(max_seq_len).long()
-    mask[seq_len:].fill_(1)
+    mask[seq_len:].fill_(0)
 
     return new_tensor, mask
 
@@ -139,7 +139,7 @@ def _padding_collate_fn(
                           batch_first=True)
     dialogue_ids = torch.tensor([item.dialogue_id for item in sorted_batch])
 
-    tokens_list = [item.utterance_tokens for item in sorted_batch]
+    tokens_list = [item.tokens for item in sorted_batch]
 
     max_length = max(item.shape[0] for item in tokens_list)
     new_size = (max_length, cast(int, max_num_tokens))
@@ -152,10 +152,10 @@ def _padding_collate_fn(
 
     return ContextualTextDatasetBatch(
         lengths=lengths,
-        dialogue_tokens=dialogue_tokens,
+        tokens=dialogue_tokens,
         dialogue_ids=dialogue_ids,
         labels=labels,
-        dialogue_masks=dialogue_masks,
+        masks=dialogue_masks,
     )
 
 

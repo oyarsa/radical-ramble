@@ -1,0 +1,10 @@
+model: contextual_simple
+train_data: data/dev/metadata.csv
+dev_data: data/dev/metadata.csv
+gpu: 0
+num_epochs: 10
+batch_size: 50
+glove_path: data/glove/glove.6B.50d.txt
+glove_dim: 50
+lr: 0.001
+glove_train: True

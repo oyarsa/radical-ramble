@@ -1,4 +1,4 @@
-"SimpleClassifier model and associated helper functions"
+"ContextualSimple model and associated helper functions"
 from typing import Union, TextIO, Optional, Tuple
 from pathlib import Path
 import torch.nn as nn
@@ -9,7 +9,7 @@ from incubator.data import Vocabulary
 from incubator.models.base_model import BaseModel
 
 
-class Simple(BaseModel):
+class ContextualSimple(BaseModel):
     """
     Simplest possible model from sequence of tokens to a class output
 
@@ -20,7 +20,8 @@ class Simple(BaseModel):
     def __init__(self,
                  embedding: nn.Embedding,
                  num_classes: int):
-        super(Simple, self).__init__()
+        super().__init__()
+        self.set_reduction('none')
 
         self.embedding = embedding
 
@@ -31,49 +32,33 @@ class Simple(BaseModel):
 
     # pylint: disable=arguments-differ
     def forward(self,
-                utteranceTokens: Tensor,
-                mask: Tensor,
-                label: Optional[Tensor] = None,
+                dialogue_tokens: Tensor,
+                masks: Tensor,
+                labels: Optional[Tensor] = None,
                 ) -> Tuple[Tensor, Optional[Tensor]]:
         """
-        utteranceTokens: (batch, seq_len, vocab_len)
+        dialogue_tokens: (batch, nutterances, seq_len)
+        labels: Optional(batch, nutterances)
         """
-        # (batch, seq_len, embedding_dim)
-        embeddings = self.embedding(utteranceTokens)
-        # (batch, embedding_dim)
-        utterance = embeddings.mean(dim=1)
-        # (batch, num_classes)
-        output = self.output(utterance)
+        # (batch, nutterances, seq_len, embedding_dim)
+        embeddings = self.embedding(dialogue_tokens)
+        # (batch, nutterances, embedding_dim)
+        utterances = embeddings.mean(dim=2)
+        # (batch, nutterances, nclasses)
+        outputs = self.output(utterances)
 
-        return output, self.loss(output, mask, label)
-
-
-def random_emb_simple(
-        vocab_size: int,
-        embedding_dim: int,
-        num_classes: int,
-        ) -> Simple:
-    "SimpleClassifier with randomly initialised embeddings layer"
-    embedding = nn.Embedding(
-        num_embeddings=vocab_size,
-        embedding_dim=embedding_dim,
-    )
-
-    return Simple(
-        embedding=embedding,
-        num_classes=num_classes,
-    )
+        return outputs, self.loss(outputs, masks, labels)
 
 
-def glove_simple(
+def glove_contextual_simple(
         glove_path: Union[Path, TextIO],
         glove_dim: int,
         num_classes: int,
         vocab: Vocabulary,
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
-        ) -> Simple:
-    "SimpleClassifier with embedding layer initialised with GloVe"
+        ) -> ContextualSimple:
+    "ContextualSimple with embedding layer initialised with GloVe"
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,
@@ -83,7 +68,7 @@ def glove_simple(
 
     embedding = nn.Embedding.from_pretrained(glove, freeze=freeze)
 
-    return Simple(
+    return ContextualSimple(
         embedding=embedding,
         num_classes=num_classes,
     )

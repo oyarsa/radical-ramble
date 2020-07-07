@@ -32,7 +32,9 @@ class LinearRnn(BaseModel):
         )
 
     # pylint: disable=arguments-differ
-    def forward(self, utteranceTokens: Tensor,
+    def forward(self,
+                utteranceTokens: Tensor,
+                mask: Tensor,
                 label: Optional[Tensor] = None,
                 ) -> Tuple[Tensor, Optional[Tensor]]:
         """
@@ -47,7 +49,7 @@ class LinearRnn(BaseModel):
         # (batch, num_classes)
         output = self.output(utterance)
 
-        return output, self.loss(output, label)
+        return output, self.loss(output, mask, label)
 
 
 def glove_linear_lstm(

@@ -42,7 +42,6 @@ def chain_func(initial_arg: T, *functions: Callable[[T], T]) -> T:
 
 def flatten2list(iterable: Iterable[T]) -> List[T]:
     """
-    # pylint: disable=line-too-long
     Taken from https://symbiosisacademy.org/tutorial-index/python-flatten-nested-lists-tuples-sets/  # NOQA
     """
     gather = []
