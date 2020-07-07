@@ -1,4 +1,4 @@
-"MeldContextualTextDataset class and assorted helper functions"
+"""MeldContextualTextDataset class and assorted helper functions."""
 from typing import NamedTuple, List, Optional, cast, Tuple
 from pathlib import Path
 
@@ -19,7 +19,7 @@ from incubator.util import DataFrameOrFilePath
 
 class ContextualInstance(NamedTuple):
     """
-    Tuple to hold the fields for a instance of the dataset.
+    Stores the fields for a instance of the dataset.
 
     Each instance encodes a whole dialogue. The labels are the labels for
     each utterance in the dialogue, and the utteranceTokens represent the
@@ -29,6 +29,7 @@ class ContextualInstance(NamedTuple):
     - labels: 4-d
     - utteranceTokens: 4x10-d
     """
+
     dialogue_id: int
     labels: torch.Tensor
     lengths: torch.Tensor
@@ -37,9 +38,11 @@ class ContextualInstance(NamedTuple):
 
 class ContextualTextDatasetBatch(NamedTuple):
     """
-    Tuple to hold the fields for a given batch of data in tensor form.
+    Stores the fields for a given batch of data in tensor form.
+
     Represents a whole batch. Tensors are batch-first.
     """
+
     dialogue_ids: torch.Tensor
     tokens: torch.Tensor
     masks: torch.Tensor
@@ -47,6 +50,7 @@ class ContextualTextDatasetBatch(NamedTuple):
     lengths: torch.Tensor
 
     def __str__(self) -> str:
+        """Format output for debuggig."""
         return (f'DatasetBatch\n'
                 f'  dialogue_ids: {self.dialogue_ids}\n'
                 f'  tokens:\n    {self.tokens}\n'
@@ -57,9 +61,11 @@ class ContextualTextDatasetBatch(NamedTuple):
 
 class MeldContextualTextDataset(Dataset):
     """
-    Dataset for simple, linear text. Utterances are considered separately,
-    without considering dialogues.
+    Dataset for simple, linear text.
+
+    Utterances are considered separately, without considering dialogues.
     """
+
     data: pd.DataFrame
     vocab: Vocabulary
     mode: str
@@ -68,6 +74,7 @@ class MeldContextualTextDataset(Dataset):
                  data: DataFrameOrFilePath,
                  vocab: Optional[Vocabulary] = None,
                  mode: str = 'sentiment'):
+        """Initialise Dataset with the data, a vocab and mode."""
         if isinstance(data, (Path, str)):
             data = pd.read_csv(data)
         self.data = preprocess_data(data)
@@ -79,9 +86,11 @@ class MeldContextualTextDataset(Dataset):
         self.mode = mode
 
     def __len__(self) -> int:
+        """Return length of the dataset."""
         return self.data['Dialogue_ID'].nunique()
 
     def __getitem__(self, index: int) -> ContextualInstance:
+        """Return item from dataset based on index."""
         rows = self.data[self.data['Dialogue_ID'] == index]
 
         utterances = []
@@ -110,7 +119,7 @@ class MeldContextualTextDataset(Dataset):
         )
 
     def vocab_size(self) -> int:
-        "Returns the size of the vocabulary built from this data"
+        """Return the size of the vocabulary built from this data."""
         return self.vocab.vocab_size()
 
 
@@ -130,8 +139,8 @@ def _extend_sequence(tensor: torch.Tensor, new_size: Tuple[int, int],
 def _padding_collate_fn(
         batch: List[ContextualInstance]
         ) -> ContextualTextDatasetBatch:
-    max_num_tokens = max(max(inst.lengths).item() for inst in batch)
-    sorted_batch = sorted(batch, key=lambda inst: -max(inst.lengths).item())
+    max_num_tokens = max(inst.lengths.max().item() for inst in batch)
+    sorted_batch = sorted(batch, key=lambda inst: -inst.lengths.max().item())
     lengths = pad_sequence([item.lengths for item in sorted_batch],
                            batch_first=True)
 
@@ -163,7 +172,7 @@ def meld_contextual_text_daloader(
         dataset: MeldContextualTextDataset,
         batch_size: int
         ) -> DataLoader:
-    "Returns a DataLoader configured with the appropriate batching function"
+    """Return a DataLoader configured with its batching function."""
     return DataLoader(
         dataset,
         batch_size=batch_size,

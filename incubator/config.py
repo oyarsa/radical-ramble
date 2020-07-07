@@ -1,4 +1,4 @@
-"Configuration from environment variables and default constants"
+"""Configuration from environment variables and default constants."""
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 

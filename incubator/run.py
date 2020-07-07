@@ -1,4 +1,4 @@
-"CLI script for running the module."
+"""CLI script for running the module."""
 from typing import Optional, NamedTuple
 import argparse
 import sys
@@ -25,19 +25,21 @@ from incubator.models.base_model import BaseModel
 
 
 class Dataloaders(NamedTuple):
-    "Training and Dev dataloaders"
+    """Training and Dev dataloaders."""
+
     trainloader: DataLoader
     devloader: Optional[DataLoader]
 
 
 class ModelData(NamedTuple):
-    "Structure for holding a model and its suitable data loaders"
+    """Structure for holding a model and its suitable data loaders."""
+
     model: BaseModel
     data: Dataloaders
 
 
 def load_mctd(args: argparse.Namespace) -> Dataloaders:
-    "Loads data for a MeldLinearText dataset"
+    """Load data for a MeldLinearText dataset."""
     train_data = mctd.MeldContextualTextDataset(
         data=args.train_data,
         mode=args.mode,
@@ -65,7 +67,7 @@ def load_mctd(args: argparse.Namespace) -> Dataloaders:
 
 
 def load_mltd(args: argparse.Namespace) -> Dataloaders:
-    "Loads data for a MeldLinearText dataset"
+    """Load data for a MeldLinearText dataset."""
     train_data = mltd.MeldLinearTextDataset(
         data=args.train_data,
         mode=args.mode,
@@ -93,7 +95,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
 
 
 def load_data(args: argparse.Namespace) -> Dataloaders:
-    "Loads data with the appropriate data format for the model"
+    """Load data with the appropriate data format for the model."""
     mltd_based = ['simple', 'linear_rnn', 'linear_cnn', 'linear_cnn_rnn']
     mctd_based = ['contextual_simple']
 
@@ -107,7 +109,7 @@ def load_data(args: argparse.Namespace) -> Dataloaders:
 
 
 def get_model_and_data(args: argparse.Namespace) -> ModelData:
-    "Returns the initialised model and appropriate dataset"
+    """Return the initialised model and appropriate dataset."""
     if args.mode == 'sentiment':
         num_classes = len(data.sentiments)
     else:
@@ -209,9 +211,10 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
 
 def train_model(args: argparse.Namespace) -> nn.Module:
     """
-    Instantiates and initialises the model given in `args`. Also loads
-    the appropriate dataset, using the paths given. Then trains the model.
+    Instantiate and initialise the model given in `args`.
 
+    Also loads the appropriate dataset, using the paths given. Then trains
+    the model.
     The training loop uses `CrossEntropyLoss` as criterion. Outputs accuracy
     and loss statistics for the training dataset and (optionally) a dev
     dataset. Progress in each epoch is tracked via a progress bar.
@@ -247,7 +250,7 @@ def train_model(args: argparse.Namespace) -> nn.Module:
 
 
 def train_arguments(parser: argparse.ArgumentParser) -> None:
-    "Adds arguments to a training command"
+    """Add arguments to a training command."""
     parser.add_argument('-c', '--config', is_config_file=True,
                         help='Configuration file')
     parser.add_argument('--model', default='simple',
@@ -295,7 +298,7 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
-    "Adds arguments to an evaluation command"
+    """Add arguments to an evaluation command."""
     parser.add_argument('-c', '--config', is_config_file=True,
                         help='Configuration file')
     parser.add_argument('--model', default='simple',
@@ -317,7 +320,7 @@ def eval_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def main() -> None:
-    "Main function. Parses CLI arguments for train/eval commands"
+    """Parse CLI arguments for train/eval commands."""
     parser = configargparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Task to perform', dest='command')
 

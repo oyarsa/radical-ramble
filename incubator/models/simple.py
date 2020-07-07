@@ -1,4 +1,4 @@
-"SimpleClassifier model and associated helper functions"
+"""SimpleClassifier model and associated helper functions."""
 from typing import Union, TextIO, Optional, Tuple
 from pathlib import Path
 import torch.nn as nn
@@ -11,16 +11,19 @@ from incubator.models.base_model import BaseModel
 
 class Simple(BaseModel):
     """
-    Simplest possible model from sequence of tokens to a class output
+    Simplest possible model from sequence of tokens to a class output.
 
+    Structure:
         TokenIds -> Embedding -> Average -> Dense -> Output
 
     Where `Average` is literally just averaging the embedding vectors into one.
     """
+
     def __init__(self,
                  embedding: nn.Embedding,
                  num_classes: int):
-        super(Simple, self).__init__()
+        """Initliase model with embedding."""
+        super().__init__()
 
         self.embedding = embedding
 
@@ -31,15 +34,17 @@ class Simple(BaseModel):
 
     # pylint: disable=arguments-differ
     def forward(self,
-                utteranceTokens: Tensor,
+                utterance_tokens: Tensor,
                 mask: Tensor,
                 label: Optional[Tensor] = None,
                 ) -> Tuple[Tensor, Optional[Tensor]]:
         """
-        utteranceTokens: (batch, seq_len, vocab_len)
+        Calculate model output.
+
+        utterance_tokens: (batch, seq_len, vocab_len)
         """
         # (batch, seq_len, embedding_dim)
-        embeddings = self.embedding(utteranceTokens)
+        embeddings = self.embedding(utterance_tokens)
         # (batch, embedding_dim)
         utterance = embeddings.mean(dim=1)
         # (batch, num_classes)
@@ -53,7 +58,7 @@ def random_emb_simple(
         embedding_dim: int,
         num_classes: int,
         ) -> Simple:
-    "SimpleClassifier with randomly initialised embeddings layer"
+    """Return Simple with randomly initialised embeddings layer."""
     embedding = nn.Embedding(
         num_embeddings=vocab_size,
         embedding_dim=embedding_dim,
@@ -73,7 +78,7 @@ def glove_simple(
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
         ) -> Simple:
-    "SimpleClassifier with embedding layer initialised with GloVe"
+    """Return Simple with embedding layer initialised with GloVe."""
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,

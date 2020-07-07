@@ -1,4 +1,4 @@
-"MeldLinearTextDataset class and assorted helper functions"
+"""MeldLinearTextDataset class and assorted helper functions."""
 from typing import NamedTuple, List, Optional, cast
 from pathlib import Path
 
@@ -20,14 +20,17 @@ from incubator.util import DataFrameOrFilePath
 class LinearTextDatasetRow(NamedTuple):
     """
     Tuple to hold the fields for a given row of data in tensor form.
+
     Represents a single row/instance.
     """
+
     dialogue_id: int
     utterance_id: int
     tokens: torch.Tensor
     label: torch.Tensor
 
     def __str__(self) -> str:
+        """Format output for debugging."""
         return (f'DatasetRow\n'
                 f'  dialogue_id: {self.dialogue_id}\n'
                 f'  utterance_id: {self.utterance_id}\n'
@@ -39,8 +42,10 @@ class LinearTextDatasetRow(NamedTuple):
 class LinearTextDatasetBatch(NamedTuple):
     """
     Tuple to hold the fields for a given batch of data in tensor form.
+
     Represents a whole batch. Tensors are batch-first.
     """
+
     dialogue_ids: torch.Tensor
     tokens: torch.Tensor
     utterance_ids: torch.Tensor
@@ -49,6 +54,7 @@ class LinearTextDatasetBatch(NamedTuple):
     masks: torch.Tensor
 
     def __str__(self) -> str:
+        """Format output for debugging."""
         return (f'DatasetBatch\n'
                 f'  dialogue_ids: {self.dialogue_ids}\n'
                 f'  utterance_ids: {self.utterance_ids}\n'
@@ -61,9 +67,11 @@ class LinearTextDatasetBatch(NamedTuple):
 
 class MeldLinearTextDataset(Dataset):
     """
-    Dataset for simple, linear text. Utterances are considered separately,
-    without considering dialogues.
+    Dataset for simple, linear text.
+
+    Utterances are considered separately, without considering dialogues.
     """
+
     data: pd.DataFrame
     vocab: Vocabulary
     mode: str
@@ -72,6 +80,7 @@ class MeldLinearTextDataset(Dataset):
                  data: DataFrameOrFilePath,
                  vocab: Optional[Vocabulary] = None,
                  mode: str = 'sentiment'):
+        """Initialise Dataset with data, vocab and mode."""
         if isinstance(data, (Path, str)):
             data = pd.read_csv(data)
         self.data = preprocess_data(data)
@@ -83,9 +92,11 @@ class MeldLinearTextDataset(Dataset):
         self.mode = mode
 
     def __len__(self) -> int:
+        """Return length of the dataset."""
         return len(self.data)
 
     def __getitem__(self, index: int) -> LinearTextDatasetRow:
+        """Return item from dataset based on index."""
         row = self.data.iloc[index]
         token_ids = self.vocab.map_tokens_to_ids(row['Tokens'])
 
@@ -104,7 +115,7 @@ class MeldLinearTextDataset(Dataset):
         )
 
     def vocab_size(self) -> int:
-        "Returns the size of the vocabulary built from this data"
+        """Return the size of the vocabulary built from this data."""
         return self.vocab.vocab_size()
 
 
@@ -136,7 +147,7 @@ def meld_linear_text_daloader(
         dataset: MeldLinearTextDataset,
         batch_size: int
         ) -> DataLoader:
-    "Returns a DataLoader configured with the appropriate batching function"
+    """Return a DataLoader configured with its batching function."""
     return DataLoader(
         dataset,
         batch_size=batch_size,

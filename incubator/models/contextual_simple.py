@@ -1,4 +1,4 @@
-"ContextualSimple model and associated helper functions"
+"""ContextualSimple model and associated helper functions."""
 from typing import Union, TextIO, Optional, Tuple
 from pathlib import Path
 import torch.nn as nn
@@ -11,17 +11,20 @@ from incubator.models.base_model import BaseModel
 
 class ContextualSimple(BaseModel):
     """
-    Simplest possible model from sequence of tokens to a class output
+    Simplest possible model from sequence of tokens to a class output.
+
+    Structure:
 
         TokenIds -> Embedding -> Average -> Dense -> Output
 
     Where `Average` is literally just averaging the embedding vectors into one.
     """
+
     def __init__(self,
                  embedding: nn.Embedding,
                  num_classes: int):
+        """Initialise the model with given embedding."""
         super().__init__()
-        self.set_reduction('none')
 
         self.embedding = embedding
 
@@ -37,7 +40,10 @@ class ContextualSimple(BaseModel):
                 labels: Optional[Tensor] = None,
                 ) -> Tuple[Tensor, Optional[Tensor]]:
         """
+        Calculate model output.
+
         dialogue_tokens: (batch, nutterances, seq_len)
+        masks: (batch, nutterances)
         labels: Optional(batch, nutterances)
         """
         # (batch, nutterances, seq_len, embedding_dim)
@@ -58,7 +64,7 @@ def glove_contextual_simple(
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
         ) -> ContextualSimple:
-    "ContextualSimple with embedding layer initialised with GloVe"
+    """Return ContextualSimple with embedding layer initialised with GloVe."""
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,

@@ -1,10 +1,10 @@
-"TextCnn model and associated helper functions"
+"""TextCnn model and associated helper functions."""
 from typing import Union, TextIO, Optional, List, Tuple
 from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # NOQA
 
 from incubator.glove import load_glove
 from incubator.data import Vocabulary
@@ -13,10 +13,13 @@ from incubator.models.base_model import BaseModel
 
 class LinearCnn(BaseModel):
     """
-    TextCnn model from sequence of tokens to a class output
+    TextCnn model from sequence of tokens to a class output.
+
+    Structure:
 
         TokenIds -> Embedding -> Conv2d -> MaxPool1d -> Dense -> Output
     """
+
     def __init__(self,
                  embedding: nn.Embedding,
                  num_classes: int,
@@ -24,7 +27,8 @@ class LinearCnn(BaseModel):
                  out_channels: int,
                  dropout: float = 0,
                  ):
-        super(LinearCnn, self).__init__()
+        """Initialise model with embedding and configure Conv2D layers."""
+        super().__init__()
 
         self.embedding = embedding
 
@@ -47,18 +51,22 @@ class LinearCnn(BaseModel):
         )
 
     def forward(self,
-                utteranceTokens: torch.Tensor,
+                utterance_tokens: torch.Tensor,
                 mask: torch.Tensor,
                 label: Optional[torch.Tensor] = None,
                 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        utteranceTokens: (batch, seq_len, vocab_len)
+        Calculate model output.
+
+        utterance_tokens: (batch, seq_len, vocab_len)
+        mask: (batch,)
+        labels: (batch,)
         """
         # width_in = embedding_dim
         # height_in = seq_len
 
         # (batch, height_in, width_in)
-        embeddings = self.embedding(utteranceTokens)
+        embeddings = self.embedding(utterance_tokens)
         # (batch, in_channels=1, height_in, width_in)
         embeddings = embeddings.unsqueeze(1)
         # [(batch, out_channels, height_out, width_out=1)] * len(filters)
@@ -91,7 +99,7 @@ def random_emb_linear_cnn(
         out_channels: int,
         dropout: float = 0,
         ) -> LinearCnn:
-    "LinearCnn with randomly initialised embeddings layer"
+    """Return LinearCnn with randomly initialised embeddings layer."""
     embedding = nn.Embedding(
         num_embeddings=vocab_size,
         embedding_dim=embedding_dim,
@@ -117,7 +125,7 @@ def glove_linear_cnn(
         saved_glove_file: Optional[Path] = None,
         dropout: float = 0,
         ) -> LinearCnn:
-    "LinearCnn with embedding layer initialised with GloVe"
+    """Return LinearCnn with embedding layer initialised with GloVe."""
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,

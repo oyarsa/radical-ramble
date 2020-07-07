@@ -19,6 +19,8 @@ wandb = "^0.9.1"
 sklearn = "^0.0"
 flake8 = "^3.8.3"
 ConfigArgParse = "^1.2.3"
+pep8-naming = "^0.11.1"
+flake8-docstrings = "^1.5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

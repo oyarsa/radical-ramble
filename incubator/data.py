@@ -1,4 +1,4 @@
-"Functions for manipulating the MELD dataset"
+"""Functions for manipulating the MELD dataset."""
 from typing import Tuple, List, Dict, Set, Iterable
 
 import pandas as pd
@@ -37,7 +37,7 @@ def build_indexes(
         pad_token: str,
         unk_token: str
         ) -> Tuple[Dict[str, int], Dict[int, str]]:
-    "Builds word -> index and index -> word maps."
+    """Build word -> index and index -> word maps."""
     word2idx = {pad_token: 0, unk_token: 1}
     idx2word = {0: pad_token, 1: unk_token}
 
@@ -49,12 +49,13 @@ def build_indexes(
 
 
 def get_word_types(words: List[str]) -> Set[str]:
-    "Builds set of word types from list of words"
+    """Build set of word types from list of words."""
     return set(word for word in words)
 
 
 class Vocabulary:
-    "Holds the indexes for converting between tokens and token ids"
+    """Stores the indexes for converting between tokens and token ids."""
+
     pad_token: str
     unk_token: str
     _word2index: Dict[str, int]
@@ -66,6 +67,7 @@ class Vocabulary:
             pad_token: str = '<PAD>',
             unk_token: str = '<UNK>',
     ):
+        """Initialise the Vocabulary with words and default tokens."""
         self.pad_token = pad_token
         self.unk_token = unk_token
         word_types = get_word_types(words)
@@ -73,45 +75,45 @@ class Vocabulary:
             word_types, pad_token, unk_token)
 
     def word2index(self, word: str) -> int:
-        "Returns the id of `word`"
+        """Return the id of `word`."""
         if word in self._word2index:
             return self._word2index[word]
         return self._word2index[self.unk_token]
 
     def index2word(self, index: int) -> str:
-        "Returns the word for `index`"
+        """Return the word for `index`."""
         if index in self._index2word:
             return self._index2word[index]
         return self._index2word[0]
 
     def map_tokens_to_ids(self, tokens: Iterable[str]) -> List[int]:
-        "Maps a list of tokens to their list of ids"
+        """Map a list of tokens to their list of ids."""
         return [self.word2index(token) for token in tokens]
 
     def map_ids_to_tokens(self, ids: Iterable[int]) -> List[str]:
-        "Maps a list of ids back to the original tokens"
+        """Map a list of ids back to the original tokens."""
         return [self.index2word(id) for id in ids]
 
     def vocab_size(self) -> int:
-        "Total size of the vocabulary, i.e., number of words"
+        """Get total size of the vocabulary, i.e., number of words."""
         return len(self._word2index)
 
     @classmethod
     def build_vocab(cls, data: pd.DataFrame) -> 'Vocabulary':
-        "Builds vocabulary from pre-processed data"
+        """Build vocabulary from pre-processed data."""
         words = flatten2list(data['Tokens'])
         return Vocabulary(words)
 
 
 def one_hot(index: int, length: int) -> torch.Tensor:
-    "Convert integer to one-hot vector representation"
+    """Convert integer to one-hot vector representation."""
     tensor = torch.zeros(length)
     tensor[index] = 1
     return tensor
 
 
 def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
-    "Chain-applies data pre-processing functions"
+    """Chain-apply data pre-processing functions."""
     return chain_func(
         data,
         lower_case,
@@ -122,13 +124,13 @@ def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def lower_case(data: pd.DataFrame) -> pd.DataFrame:
-    "Converts all strings to lower case"
+    """Convert all strings to lower case."""
     data['Utterance'] = data['Utterance'].str.lower()
     return data
 
 
 def clean_unicode(data: pd.DataFrame) -> pd.DataFrame:
-    "Replace the Unicode characters with their appropriate replacements."
+    """Replace the Unicode characters with their appropriate replacements."""
     data['Utterance'] = (
         data['Utterance'].apply(lambda s: s.replace('\x92', "'"))
         .apply(lambda s: s.replace('\x85', ". "))
@@ -143,8 +145,9 @@ def clean_unicode(data: pd.DataFrame) -> pd.DataFrame:
 
 def get_tokeniser() -> Tokenizer:
     """
-    Create a Tokenizer with the default settings for English
-    including punctuation rules and exceptions.
+    Create a Tokenizer with the default settings for English.
+
+    Inculdes punctuation rules and exceptions.
     """
     nlp = English()
     tokeniser = nlp.Defaults.create_tokenizer(nlp)
@@ -152,14 +155,14 @@ def get_tokeniser() -> Tokenizer:
 
 
 def tokenise(data: pd.DataFrame) -> pd.DataFrame:
-    "Tokenises strings using the tokeniser from `get_tokeniser`"
+    """Tokenise strings using the tokeniser from `get_tokeniser`."""
     tokeniser = get_tokeniser()
     data['Tokens'] = data['Utterance'].apply(tokeniser)
     return data
 
 
 def remove_punctuation(data: pd.DataFrame) -> pd.DataFrame:
-    "Removes punctuation tokens"
+    """Remove punctuation tokens."""
     def filter_punct(tokens: Doc) -> List[str]:
         return [token.text for token in tokens if not token.is_punct]
     data['Tokens'] = data['Tokens'].apply(filter_punct)

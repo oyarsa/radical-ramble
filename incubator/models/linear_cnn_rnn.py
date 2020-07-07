@@ -1,4 +1,4 @@
-"TextCnnRnn model and associated helper functions"
+"""TextCnnRnn model and associated helper functions."""
 from typing import Union, TextIO, Optional, List, Tuple
 from pathlib import Path
 
@@ -12,10 +12,12 @@ from incubator.models.base_model import BaseModel
 
 class LinearCnnRnn(BaseModel):
     """
-    TextCnnRnn model from sequence of tokens to a class output
+    TextCnnRnn model from sequence of tokens to a class output.
 
+    Structure:
         TokenIds -> Embedding -> Conv2d -> RNN -> Dense -> Output
     """
+
     def __init__(self,
                  embedding: nn.Embedding,
                  rnn: nn.RNNBase,
@@ -23,7 +25,8 @@ class LinearCnnRnn(BaseModel):
                  filters: List[int],
                  out_channels: int,
                  ):
-        super(LinearCnnRnn, self).__init__()
+        """Inintialises model with embedding, RNN and Conv2D parameters."""
+        super().__init__()
 
         self.embedding = embedding
         self.rnn = rnn
@@ -51,18 +54,22 @@ class LinearCnnRnn(BaseModel):
         )
 
     def forward(self,
-                utteranceTokens: torch.Tensor,
+                utterance_tokens: torch.Tensor,
                 mask: torch.Tensor,
                 label: Optional[torch.Tensor] = None,
                 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        utteranceTokens: (batch, seq_len, vocab_len)
+        Calculate model output.
+
+        utterance_tokens: (batch, seq_len, vocab_len)
+        mask: (batch,)
+        label: (batch)
         """
         # width_in = embedding_dim
         # height_in = seq_len
 
         # (batch, height_in, width_in)
-        embeddings = self.embedding(utteranceTokens)
+        embeddings = self.embedding(utterance_tokens)
         # (batch, in_channels=1, height_in, width_in)
         embeddings = embeddings.unsqueeze(1)
         # [(batch, out_channels, height_out, width_out=1)] * len(filters)
@@ -105,8 +112,7 @@ def glove_linear_cnn_lstm(
         freeze: bool = True,
         saved_glove_file: Optional[Path] = None,
         ) -> LinearCnnRnn:
-    "LinearCnn with embedding layer initialised with GloVe"
-
+    """Return LinearCnnRnn with embedding layer initialised with GloVe."""
     glove = load_glove(
         input_file=glove_path,
         glove_dim=glove_dim,

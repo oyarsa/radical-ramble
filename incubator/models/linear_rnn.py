@@ -1,4 +1,4 @@
-"RnnClassifier model and associated helper functions"
+"""RnnClassifier model and associated helper functions."""
 from typing import Union, TextIO, Optional, Tuple
 from pathlib import Path
 import torch.nn as nn
@@ -11,17 +11,20 @@ from incubator.models.base_model import BaseModel
 
 class LinearRnn(BaseModel):
     """
-    Simple RNN-based model from sequence of tokens to a class output
+    Simple RNN-based model from sequence of tokens to a class output.
 
+    Structure:
         TokenIds -> Embedding -> RNN -> Dense -> Output
 
     Where RNN is a standard GRU/LSTM without attention.
     """
+
     def __init__(self,
                  embedding: nn.Embedding,
                  rnn: nn.RNNBase,
                  num_classes: int):
-        super(LinearRnn, self).__init__()
+        """Initialise model with embedding and RNN."""
+        super().__init__()
 
         self.embedding = embedding
         self.rnn = rnn
@@ -33,15 +36,19 @@ class LinearRnn(BaseModel):
 
     # pylint: disable=arguments-differ
     def forward(self,
-                utteranceTokens: Tensor,
+                utterance_tokens: Tensor,
                 mask: Tensor,
                 label: Optional[Tensor] = None,
                 ) -> Tuple[Tensor, Optional[Tensor]]:
         """
-        utteranceTokens: (batch, seq_len, vocab_len)
+        Calculate model output.
+
+        utterance_tokens: (batch, seq_len, vocab_len)
+        mask: (batch,)
+        label: (batch,)
         """
         # (batch, seq_len, embedding_dim)
-        embeddings = self.embedding(utteranceTokens)
+        embeddings = self.embedding(utterance_tokens)
         # (batch, seq_len, hidden_dim)
         rnn_out, _ = self.rnn(embeddings)
         # (batch, hidden_dim)
@@ -65,7 +72,8 @@ def glove_linear_lstm(
         rnn_dropout: float = 0,
         ) -> LinearRnn:
     """
-    RnnClassifier with embedding layer initialised with GloVe.
+    Return RnnClassifier with embedding layer initialised with GloVe.
+
     RNN used is an LSTM.
     """
     glove = load_glove(

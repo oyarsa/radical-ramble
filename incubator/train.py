@@ -1,5 +1,5 @@
-"Training loop for torch models"
-from typing import Optional, NamedTuple, Tuple
+"""Training loop for torch models."""
+from typing import Optional, NamedTuple, Tuple, cast
 
 import torch
 import torch.optim as optim
@@ -13,7 +13,8 @@ from incubator.models.base_model import BaseModel
 
 
 class EpochResults(NamedTuple):
-    "Results for a given epoch"
+    """Results for a given epoch."""
+
     accuracy: float
     loss: float
 
@@ -23,12 +24,21 @@ def calc_accuracy(
         labels: torch.Tensor,
         mask: torch.Tensor,
         ) -> float:
+    """
+    Calculate accuracy given model outputs, labels and masks.
+
+    outputs: (batch, *, nclasses)
+    labels: (batch, *)
+    mask: (batch, *)
+
+    Observation: the '*' dimensions all must match.
+    """
     predictions = outputs.argmax(-1) * mask
 
     results = predictions == labels
 
     acc = results.sum().item()
-    return acc
+    return cast(float, acc)
 
 
 def get_predictions(
@@ -38,6 +48,13 @@ def get_predictions(
         new_true: torch.Tensor,
         mask: torch.Tensor,
         ) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Accumulate predictions and true labels.
+
+    Does the right thing when it comes to masking and contextual models. That
+    is, it flattens the 2-D structures from the contextual models, whilst
+    ignoring the masked positions.
+    """
     new_pred = outputs.argmax(-1) * mask
 
     if mask.dim() == 1:
@@ -67,7 +84,7 @@ def train_epoch(
         device: torch.device,
         log_interval: int = 10,
         ) -> EpochResults:
-    "Performs training pass for an epoch. Reports loss and accuracy"
+    """Perform training pass for an epoch. Reports loss and accuracy."""
     running_loss = 0.0
     running_acc = 0.0
     running_len = 0
@@ -120,7 +137,7 @@ def dev_epoch(epoch: int,
               device: torch.device,
               log_interval: int = 10,
               ) -> EpochResults:
-    "Performs evaluation of dev dataset for an epoch"
+    """Perform evaluation of dev dataset for an epoch."""
     pbar = tqdm.trange(len(devloader),
                        desc=f'#{epoch} [Dev  ] acc: 0.000 loss: 0.000',
                        leave=True)
@@ -186,7 +203,7 @@ def train(model: BaseModel,
           log_interval: int = 10,
           weights: Optional[torch.Tensor] = None,
           ) -> nn.Module:
-    "Performs training loop"
+    """Perform training loop."""
     if gpu < 0:
         device = torch.device('cpu')
     else:

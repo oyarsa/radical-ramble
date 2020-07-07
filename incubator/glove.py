@@ -1,4 +1,4 @@
-"GloVe-related functions for loading."
+"""GloVe-related functions for loading."""
 from typing import TextIO, Union, cast, Optional
 from pathlib import Path
 import torch
@@ -14,7 +14,7 @@ def load_glove(
         glove_dim: int,
         saved_glove_file: Optional[Path] = None,
         ) -> torch.Tensor:
-    "Loads GloVe weight matrix based on a Vocabulary"
+    """Load GloVe weight matrix based on a Vocabulary."""
     if saved_glove_file and saved_glove_file.exists():
         print('Loading GloVe file from', saved_glove_file)
         return cast(torch.Tensor, torch.load(saved_glove_file))
