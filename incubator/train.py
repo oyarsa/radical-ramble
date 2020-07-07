@@ -23,10 +23,7 @@ def calc_accuracy(
         labels: torch.Tensor,
         mask: torch.Tensor,
         ) -> float:
-    predictions = outputs.argmax(-1)
-
-    predictions = predictions * mask
-    labels = labels * mask
+    predictions = outputs.argmax(-1) * mask
 
     results = predictions == labels
 
@@ -37,13 +34,13 @@ def calc_accuracy(
 def get_predictions(
         y_pred: torch.Tensor,
         y_true: torch.Tensor,
-        new_pred: torch.Tensor,
+        outputs: torch.Tensor,
         new_true: torch.Tensor,
         mask: torch.Tensor,
         ) -> Tuple[torch.Tensor, torch.Tensor]:
-    dimensions = len(mask.shape)
+    new_pred = outputs.argmax(-1) * mask
 
-    if dimensions == 1:
+    if mask.dim() == 1:
         y_pred = torch.cat((y_pred, new_pred.cpu()))
         y_true = torch.cat((y_true, new_true.cpu()))
         return y_pred, y_true
@@ -51,8 +48,8 @@ def get_predictions(
     result_pred = []
     result_true = []
 
-    for i in range(y_pred.shape[0]):
-        for j in range(y_pred.shape[1]):
+    for i in range(new_pred.shape[0]):
+        for j in range(new_pred.shape[1]):
             if mask[i, j] == 1:
                 result_pred.append(new_pred[i, j].item())
                 result_true.append(new_true[i, j].item())
@@ -74,7 +71,6 @@ def train_epoch(
     running_loss = 0.0
     running_acc = 0.0
     running_len = 0
-    running_acc_other = 0.0
 
     pbar = tqdm.trange(len(trainloader),
                        desc=f'#{epoch} [Train] acc: 0.000 loss: 0.000',
@@ -98,9 +94,6 @@ def train_epoch(
         running_loss += loss.item()
         running_acc += calc_accuracy(outputs, labels, masks)
         running_len += masks.nonzero().shape[0]
-
-        running_acc_other += (outputs.argmax(1) == labels).sum().item()
-        print(running_acc, running_acc_other)
 
         cur_loss = running_loss / running_len
         cur_acc = running_acc / running_len
@@ -148,14 +141,12 @@ def dev_epoch(epoch: int,
 
             outputs, loss = model(inputs, masks, labels)
 
-            predictions = outputs.argmax(1)
-
             running_loss += loss.item()
             running_acc += calc_accuracy(outputs, labels, masks)
             running_len += masks.nonzero().shape[0]
 
-            y_pred, y_true = get_predictions(y_pred, y_true, predictions,
-                                             labels, masks)
+            y_pred, y_true = get_predictions(y_pred, y_true,
+                                             outputs, labels, masks)
 
             cur_loss = running_loss / running_len
             cur_acc = running_acc / running_len

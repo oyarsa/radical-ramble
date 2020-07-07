@@ -3,7 +3,7 @@ train_data: data/dev/metadata.csv
 dev_data: data/dev/metadata.csv
 gpu: 0
 num_epochs: 10
-batch_size: 50
+batch_size: 1
 glove_path: data/glove/glove.6B.50d.txt
 glove_dim: 50
 lr: 0.001
