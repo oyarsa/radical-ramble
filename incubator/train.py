@@ -33,9 +33,9 @@ def calc_accuracy(
 
     Observation: the '*' dimensions all must match.
     """
-    predictions = outputs.argmax(-1) * mask
-
+    predictions = outputs.argmax(-1)
     results = predictions == labels
+    results = results * mask
 
     acc = results.sum().item()
     return cast(float, acc)
