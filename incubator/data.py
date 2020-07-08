@@ -84,7 +84,7 @@ class Vocabulary:
         """Return the word for `index`."""
         if index in self._index2word:
             return self._index2word[index]
-        return self._index2word[0]
+        return self.unk_token
 
     def map_tokens_to_ids(self, tokens: Iterable[str]) -> List[int]:
         """Map a list of tokens to their list of ids."""

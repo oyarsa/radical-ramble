@@ -91,29 +91,6 @@ class LinearCnn(BaseModel):
         # dynamically.
 
 
-def random_emb_linear_cnn(
-        vocab_size: int,
-        embedding_dim: int,
-        num_classes: int,
-        filters: List[int],
-        out_channels: int,
-        dropout: float = 0,
-        ) -> LinearCnn:
-    """Return LinearCnn with randomly initialised embeddings layer."""
-    embedding = nn.Embedding(
-        num_embeddings=vocab_size,
-        embedding_dim=embedding_dim,
-    )
-
-    return LinearCnn(
-        embedding=embedding,
-        num_classes=num_classes,
-        filters=filters,
-        out_channels=out_channels,
-        dropout=dropout,
-    )
-
-
 def glove_linear_cnn(
         glove_path: Union[Path, TextIO],
         glove_dim: int,

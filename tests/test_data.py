@@ -133,7 +133,7 @@ def test_linear_dataloader() -> None:
         assert all(len(seq) == max_length for seq in batch.tokens)
 
 
-def test_contextual_dataset() -> None:
+def test_contextual_dataset_emotion() -> None:
     df = read_test_data()
     dataset = MeldContextualTextDataset(df, mode='emotion')
 
@@ -147,6 +147,24 @@ def test_contextual_dataset() -> None:
 
     assert dataset[1].dialogue_id == 1
     assert dataset[1].labels.equal(torch.tensor([4]))
+    assert len(dataset[1].tokens) == 1
+    assert len(dataset[1].tokens[0]) == len(test_tokens[2])
+
+
+def test_contextual_dataset_sentiment() -> None:
+    df = read_test_data()
+    dataset = MeldContextualTextDataset(df, mode='sentiment')
+
+    max_len0 = max(len(test_tokens[0]), len(test_tokens[1]))
+
+    assert dataset[0].dialogue_id == 0
+    assert dataset[0].labels.equal(torch.tensor([2, 2]))
+    assert len(dataset[0].tokens) == 2
+    assert len(dataset[0].tokens[0]) == max_len0
+    assert len(dataset[0].tokens[1]) == max_len0
+
+    assert dataset[1].dialogue_id == 1
+    assert dataset[1].labels.equal(torch.tensor([1]))
     assert len(dataset[1].tokens) == 1
     assert len(dataset[1].tokens[0]) == len(test_tokens[2])
 
@@ -169,3 +187,63 @@ def test_contextual_dataloader() -> None:
         assert batch.lengths.equal(torch.tensor([[length2, 0],
                                                  [length0, length1]]))
         assert batch.tokens.shape == (2, 2, max_length)
+
+
+def test_one_hot() -> None:
+    """Test one_hot function for turning category into one-hot vector."""
+    label = 3
+    num_classes = 5
+    vector = data.one_hot(label, num_classes)
+
+    assert vector.equal(torch.tensor([0, 0, 0, 1, 0]).float())
+
+
+def test_vocabulary_unknown_word() -> None:
+    """Test if vocabulary returns unkown index for unknown word."""
+    df = read_test_data()
+    dataset = MeldContextualTextDataset(df, mode='emotions')
+    vocab = dataset.vocab
+
+    unkown_index = vocab.word2index(vocab.unk_token)
+    assert vocab.word2index('COMPLETELYIMPOSSIBLETOKNOW') == unkown_index
+
+
+def test_vocabulary_unknown_index() -> None:
+    """Test if vocabulary returns unkown word for unknown index."""
+    df = read_test_data()
+    dataset = MeldContextualTextDataset(df, mode='emotions')
+    vocab = dataset.vocab
+
+    assert vocab.index2word(100000) == vocab.unk_token
+
+
+def test_vocabulary_known_index() -> None:
+    """Test if vocabulary returns correct word for known index."""
+    df = read_test_data()
+    dataset = MeldContextualTextDataset(df, mode='emotions')
+    vocab = dataset.vocab
+
+    word = vocab.index2word(2)  # first word non PAD or UNK for non-empty vocab
+    assert word != vocab.unk_token
+
+
+def test_vocabulary_token_id_map() -> None:
+    """Test if vocab can correctly map list of words to integers and back."""
+    df = read_test_data()
+    dataset = MeldContextualTextDataset(df, mode='emotions')
+    vocab = dataset.vocab
+
+    words = ['oh', 'my', 'god']
+    indexes = vocab.map_tokens_to_ids(words)
+    new_words = vocab.map_ids_to_tokens(indexes)
+
+    assert words == new_words
+
+
+def test_vocabularies_are_equal() -> None:
+    """Test if vocabularies by all datasets are equal to each other."""
+    df = read_test_data()
+    context_dataset = MeldContextualTextDataset(df, mode='sentiment')
+    linear_dataset = MeldLinearTextDataset(df, mode='sentiment')
+
+    assert context_dataset.vocab_size() == linear_dataset.vocab_size()

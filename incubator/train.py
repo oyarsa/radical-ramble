@@ -1,5 +1,5 @@
 """Training loop for torch models."""
-from typing import Optional, NamedTuple, Tuple, cast
+from typing import Optional, Tuple, cast
 
 import torch
 import torch.optim as optim
@@ -10,13 +10,6 @@ from sklearn.metrics import precision_recall_fscore_support
 import wandb  # type: ignore
 
 from incubator.models.base_model import BaseModel
-
-
-class EpochResults(NamedTuple):
-    """Results for a given epoch."""
-
-    accuracy: float
-    loss: float
 
 
 def calc_accuracy(
@@ -83,7 +76,7 @@ def train_epoch(
         optimiser: optim.Optimizer,
         device: torch.device,
         log_interval: int = 10,
-        ) -> EpochResults:
+        ) -> None:
     """Perform training pass for an epoch. Reports loss and accuracy."""
     running_loss = 0.0
     running_acc = 0.0
@@ -125,18 +118,13 @@ def train_epoch(
                 'Train loss': cur_loss,
             })
 
-    return EpochResults(
-        accuracy=running_acc / running_len,
-        loss=running_loss / running_len,
-    )
-
 
 def dev_epoch(epoch: int,
               model: BaseModel,
               devloader: DataLoader,
               device: torch.device,
               log_interval: int = 10,
-              ) -> EpochResults:
+              ) -> None:
     """Perform evaluation of dev dataset for an epoch."""
     pbar = tqdm.trange(len(devloader),
                        desc=f'#{epoch} [Dev  ] acc: 0.000 loss: 0.000',
@@ -186,11 +174,6 @@ def dev_epoch(epoch: int,
                     'Dev f1': f1_score,
                 })
 
-    return EpochResults(
-        accuracy=running_acc / running_len,
-        loss=running_loss / running_len,
-    )
-
 
 def train(model: BaseModel,
           trainloader: DataLoader,
@@ -218,15 +201,9 @@ def train(model: BaseModel,
                            weight_decay=weight_decay)
 
     for epoch in range(num_epochs):
-        train_results = train_epoch(epoch, model, trainloader, optimiser,
-                                    device, log_interval)
-        if verbose:
-            print(train_results)
+        train_epoch(epoch, model, trainloader, optimiser, device, log_interval)
 
         if devloader:
-            dev_results = dev_epoch(epoch, model, devloader, device,
-                                    log_interval)
-            if verbose:
-                print(dev_results)
+            dev_epoch(epoch, model, devloader, device, log_interval)
 
     return model

@@ -49,7 +49,7 @@ class ContextualTextDatasetBatch(NamedTuple):
     labels: torch.Tensor
     lengths: torch.Tensor
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         """Format output for debuggig."""
         return (f'DatasetBatch\n'
                 f'  dialogue_ids: {self.dialogue_ids}\n'

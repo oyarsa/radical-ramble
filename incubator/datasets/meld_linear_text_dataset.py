@@ -29,7 +29,7 @@ class LinearTextDatasetRow(NamedTuple):
     tokens: torch.Tensor
     label: torch.Tensor
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         """Format output for debugging."""
         return (f'DatasetRow\n'
                 f'  dialogue_id: {self.dialogue_id}\n'
@@ -53,7 +53,7 @@ class LinearTextDatasetBatch(NamedTuple):
     lengths: torch.Tensor
     masks: torch.Tensor
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         """Format output for debugging."""
         return (f'DatasetBatch\n'
                 f'  dialogue_ids: {self.dialogue_ids}\n'

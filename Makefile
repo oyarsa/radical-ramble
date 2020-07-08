@@ -1,6 +1,9 @@
 test:
 	poetry run pytest tests $(ARGS)
 
+coverage:
+	poetry run pytest --cov=incubator tests $(ARGS)
+
 jupyter:
 	poetry run jupyter notebook
 

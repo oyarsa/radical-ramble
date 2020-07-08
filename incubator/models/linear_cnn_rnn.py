@@ -33,9 +33,7 @@ class LinearCnnRnn(BaseModel):
 
         convs = []
         for filter_size in filters:
-            if filter_size % 2 == 0:
-                # filter_size has to be odd for the formula to work
-                filter_size += 1
+            assert filter_size % 2 != 0, "Filters must be odd."
             padding = filter_size // 2  # to preserve the height of the input
 
             conv = nn.Conv2d(

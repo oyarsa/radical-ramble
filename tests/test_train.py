@@ -112,3 +112,68 @@ def test_contextual_accuracy() -> None:
     mask = torch.tensor([[1, 1], [1, 0]])
 
     assert calc_accuracy(outputs, labels, mask) == 2
+
+
+def test_train_cuda(monkeypatch: Any) -> None:
+    """Test if Simple trains on CUDA."""
+    set_seed(1000)
+
+    monkeypatch.setattr(wandb, 'log', _noop)
+
+    df = read_test_data()
+    train_dataset = mltd.MeldLinearTextDataset(df, mode='emotion')
+    dev_dataset = mltd.MeldLinearTextDataset(df, mode='emotion',
+                                             vocab=train_dataset.vocab)
+    glove_file = StringIO(tm.glove_str)
+
+    train_loader = mltd.meld_linear_text_daloader(
+        dataset=train_dataset,
+        batch_size=tm.batch_size,
+    )
+    dev_loader = mltd.meld_linear_text_daloader(
+        dataset=dev_dataset,
+        batch_size=tm.batch_size,
+    )
+
+    classifier = glove_simple(
+        glove_path=glove_file,
+        glove_dim=tm.glove_dim,
+        num_classes=tm.num_classes,
+        vocab=train_dataset.vocab,
+    )
+
+    train(model=classifier, trainloader=train_loader, devloader=dev_loader,
+          gpu=0)
+
+
+def test_train_weights(monkeypatch: Any) -> None:
+    """Test training loop with weights for loss function."""
+    set_seed(1000)
+    weights = torch.tensor([4.0, 15.0, 15.0, 3.0, 1.0, 6.0, 3.0])
+
+    monkeypatch.setattr(wandb, 'log', _noop)
+
+    df = read_test_data()
+    train_dataset = mltd.MeldLinearTextDataset(df, mode='emotion')
+    dev_dataset = mltd.MeldLinearTextDataset(df, mode='emotion',
+                                             vocab=train_dataset.vocab)
+    glove_file = StringIO(tm.glove_str)
+
+    train_loader = mltd.meld_linear_text_daloader(
+        dataset=train_dataset,
+        batch_size=tm.batch_size,
+    )
+    dev_loader = mltd.meld_linear_text_daloader(
+        dataset=dev_dataset,
+        batch_size=tm.batch_size,
+    )
+
+    classifier = glove_simple(
+        glove_path=glove_file,
+        glove_dim=tm.glove_dim,
+        num_classes=tm.num_classes,
+        vocab=train_dataset.vocab,
+    )
+
+    train(model=classifier, trainloader=train_loader, devloader=dev_loader,
+          weights=weights)
