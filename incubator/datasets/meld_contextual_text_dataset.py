@@ -90,7 +90,27 @@ class MeldContextualTextDataset(Dataset):
         return self.data['Dialogue_ID'].nunique()
 
     def __getitem__(self, index: int) -> ContextualInstance:
-        """Return item from dataset based on index."""
+        """
+        Return valid item from dataset based on index.
+
+        It works by iterating through the indexes starting from `index` until
+        it finds a valid item.
+        """
+        while index < len(self):
+            item = self._item(index)
+            if item is not None:
+                return item
+            index += 1
+        raise IndexError
+
+    def _item(self, index: int) -> Optional[ContextualInstance]:
+        """
+        Return item from dataset based on index, or None if index is invalid.
+
+        Returns None if the item is invalid. In this case, it can happen if
+        there is an empty Dialogue ID. For example, MELD's train.csv does not
+        have rows for the Dialogue ID = 60.
+        """
         rows = self.data[self.data['Dialogue_ID'] == index]
 
         utterances = []
@@ -98,7 +118,11 @@ class MeldContextualTextDataset(Dataset):
         lengths = []
 
         for _, row in rows.iterrows():
-            token_ids = self.vocab.map_tokens_to_ids(row['Tokens'])
+            tokens = row['Tokens']
+            if len(tokens) == 0:
+                continue
+
+            token_ids = self.vocab.map_tokens_to_ids(tokens)
 
             if self.mode == 'sentiment':
                 sentiment = cast(str, row['Sentiment'])
@@ -110,6 +134,9 @@ class MeldContextualTextDataset(Dataset):
             utterances.append(torch.tensor(token_ids))
             labels.append(label)
             lengths.append(len(token_ids))
+
+        if len(utterances) == 0:
+            return None
 
         return ContextualInstance(
             dialogue_id=index,
