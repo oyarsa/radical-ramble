@@ -261,7 +261,7 @@ def train_model(args: argparse.Namespace) -> nn.Module:
 
     torch.save(model.state_dict(), Path(wandb.run.dir) / 'model.pt')
     if args.output:
-        torch.save(model, args.output)
+        torch.save(model.state_dict(), args.output)
 
     return model
 

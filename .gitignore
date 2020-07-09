@@ -35,3 +35,4 @@ MANIFEST.in
 data
 .ipynb_checkpoints
 wandb
+saved_models

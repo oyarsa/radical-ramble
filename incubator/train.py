@@ -1,5 +1,6 @@
 """Training loop for torch models."""
 from typing import Optional, Tuple, cast
+import copy
 
 import torch
 import torch.optim as optim
@@ -125,7 +126,7 @@ def dev_epoch(epoch: int,
               devloader: DataLoader,
               device: torch.device,
               log_interval: int = 10,
-              ) -> None:
+              ) -> Tuple[float, float]:
     """Perform evaluation of dev dataset for an epoch."""
     pbar = tqdm.trange(len(devloader),
                        desc=f'#{epoch} [Dev  ] acc: 0.000 loss: 0.000',
@@ -177,6 +178,8 @@ def dev_epoch(epoch: int,
 
     pbar.close()
 
+    return f1_score
+
 
 def train(model: BaseModel,
           trainloader: DataLoader,
@@ -203,10 +206,22 @@ def train(model: BaseModel,
     optimiser = optim.Adam(model.parameters(), lr=learning_rate,
                            weight_decay=weight_decay)
 
+    best_model: Optional[BaseModel] = None
+    best_f1 = 0
+
     for epoch in range(num_epochs):
         train_epoch(epoch, model, trainloader, optimiser, device, log_interval)
 
         if devloader:
-            dev_epoch(epoch, model, devloader, device, log_interval)
+            f1_score = dev_epoch(epoch, model, devloader, device, log_interval)
 
-    return model
+            if f1_score > best_f1:
+                best_model = copy.deepcopy(model)
+                wandb.log({
+                    'Best f1': best_f1,
+                })
+
+    if best_model is not None:
+        return best_model
+    else:
+        return model
