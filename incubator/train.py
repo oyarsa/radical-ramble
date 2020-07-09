@@ -117,6 +117,7 @@ def train_epoch(
                 'Train accuracy': cur_acc,
                 'Train loss': cur_loss,
             })
+    pbar.close()
 
 
 def dev_epoch(epoch: int,
@@ -173,6 +174,8 @@ def dev_epoch(epoch: int,
                     'Dev loss': cur_loss,
                     'Dev f1': f1_score,
                 })
+
+    pbar.close()
 
 
 def train(model: BaseModel,

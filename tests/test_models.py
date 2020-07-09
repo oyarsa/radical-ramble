@@ -1,3 +1,4 @@
+"""Test model training with synthetic data."""
 from io import StringIO
 
 from incubator import data
@@ -9,6 +10,7 @@ from incubator.models.linear_rnn import glove_linear_lstm
 from incubator.models.linear_cnn import glove_linear_cnn
 from incubator.models.linear_cnn_rnn import glove_linear_cnn_lstm
 from incubator.models.contextual_simple import glove_contextual_simple
+from incubator.models.contextual_rnn import glove_contextual_lstm
 from incubator.datasets.meld_linear_text_dataset import (
     MeldLinearTextDataset,
     meld_linear_text_daloader,
@@ -147,7 +149,7 @@ def test_linear_cnn_rnn() -> None:
 
 
 def test_contextual_simple() -> None:
-    "Test if Linear Cnn GloVe loader works with synthetic data"
+    """Test ContextualSimple model with synthetic data."""
     df = read_test_data()
     dataset = MeldContextualTextDataset(df, mode='emotion')
     glove_file = StringIO(glove_str)
@@ -170,4 +172,31 @@ def test_contextual_simple() -> None:
     for batch in loader:
         predictions, loss = classifier(batch.tokens, batch.masks, batch.labels)
         assert predictions.shape == (batch_size, nutterances, num_classes)
-        assert loss.shape == ()
+        assert loss.shape == ()  # scalar
+
+
+def test_contextual_rnn() -> None:
+    """Test ContextualRnn model with synthetic data."""
+    df = read_test_data()
+    dataset = MeldContextualTextDataset(df, mode='emotion')
+    glove_file = StringIO(glove_str)
+
+    batch_size = 2
+    nutterances = 2
+
+    loader = meld_contextual_text_daloader(
+        dataset=dataset,
+        batch_size=batch_size,
+    )
+
+    classifier = glove_contextual_lstm(
+        glove_path=glove_file,
+        glove_dim=glove_dim,
+        num_classes=num_classes,
+        vocab=dataset.vocab,
+    )
+
+    for batch in loader:
+        predictions, loss = classifier(batch.tokens, batch.masks, batch.labels)
+        assert predictions.shape == (batch_size, nutterances, num_classes)
+        assert loss.shape == ()  # scalar
