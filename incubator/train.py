@@ -216,6 +216,7 @@ def train(model: BaseModel,
             f1_score = dev_epoch(epoch, model, devloader, device, log_interval)
 
             if f1_score > best_f1:
+                best_f1 = f1_score
                 best_model = copy.deepcopy(model)
                 wandb.log({
                     'Best f1': best_f1,

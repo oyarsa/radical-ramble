@@ -19,6 +19,7 @@ from incubator.models.linear_cnn import glove_linear_cnn
 from incubator.models.linear_cnn_rnn import glove_linear_cnn_lstm
 from incubator.models.contextual_simple import glove_contextual_simple
 from incubator.models.contextual_rnn import glove_contextual_lstm
+from incubator.models.bc_lstm import glove_bc_lstm
 from incubator.train import train
 from incubator import util
 from incubator.config import defaults
@@ -98,7 +99,7 @@ def load_mltd(args: argparse.Namespace) -> Dataloaders:
 def load_data(args: argparse.Namespace) -> Dataloaders:
     """Load data with the appropriate data format for the model."""
     mltd_based = ['simple', 'linear_rnn', 'linear_cnn', 'linear_cnn_rnn']
-    mctd_based = ['contextual_simple', 'contextual_rnn']
+    mctd_based = ['contextual_simple', 'contextual_rnn', 'bc_lstm']
 
     if args.model in mltd_based:
         return load_mltd(args)
@@ -212,6 +213,24 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
             vocab=train_data.vocab,
             freeze=not args.glove_train,
             saved_glove_file=saved_glove_file,
+            rnn_hidden_size=args.rnn_hidden_size,
+            rnn_num_layers=args.rnn_num_layers,
+            bidirectional=args.rnn_bidirectional,
+            rnn_dropout=args.rnn_dropout,
+        )
+    elif args.model == 'bc_lstm':
+        train_data = loaders.trainloader.dataset
+        assert isinstance(train_data, mctd.MeldContextualTextDataset)
+
+        model = glove_bc_lstm(
+            glove_path=args.glove_path,
+            glove_dim=args.glove_dim,
+            num_classes=num_classes,
+            vocab=train_data.vocab,
+            freeze=not args.glove_train,
+            saved_glove_file=saved_glove_file,
+            filters=filters,
+            out_channels=args.cnn_out_channels,
             rnn_hidden_size=args.rnn_hidden_size,
             rnn_num_layers=args.rnn_num_layers,
             bidirectional=args.rnn_bidirectional,
