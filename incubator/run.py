@@ -245,6 +245,40 @@ def get_model_and_data(args: argparse.Namespace) -> ModelData:
     return ModelData(model=model, data=loaders)
 
 
+def get_class_weights(args: argparse.Namespace) -> Optional[torch.Tensor]:
+    """
+    Parse class weights from arguments, with default for Emotion.
+
+    Returns a default (from MELD) for Emotion mode if none is supplied.
+    Currently doesn't have default weights for Sentiment.
+    """
+    if args.class_weights == 'default':
+        if args.mode == 'emotion':
+            return torch.tensor([4.0, 15.0, 15.0, 3.0, 1.0, 6.0, 3.0])
+        else:
+            return None
+
+    if args.class_weights == 'none':
+        return None
+
+    if args.mode == 'emotion':
+        num_classes = 7
+    else:
+        num_classes = 3
+
+    try:
+        weights = [float(x) for x in args.class_weights.split(',')]
+        if len(weights) != num_classes:
+            raise ValueError
+
+        return torch.tensor(weights)
+    except ValueError:
+        print('Invalid weights. Must be comma-separated numbers with the same '
+              'as there are classes in the chosen mode (7 for emotion, 3 for '
+              'sentiment.')
+        sys.exit(1)
+
+
 def train_model(args: argparse.Namespace) -> nn.Module:
     """
     Instantiate and initialise the model given in `args`.
@@ -260,11 +294,7 @@ def train_model(args: argparse.Namespace) -> nn.Module:
     model = model_data.model
     wandb.watch(model)
 
-    weights: Optional[torch.Tensor]
-    if args.mode == 'emotion':
-        weights = torch.tensor([4.0, 15.0, 15.0, 3.0, 1.0, 6.0, 3.0])
-    else:
-        weights = None
+    weights = get_class_weights(args)
 
     model = train(
         model=model,
@@ -331,6 +361,9 @@ def train_arguments(parser: argparse.ArgumentParser) -> None:
                         help='RNN dropout')
     parser.add_argument('--dropout', type=float, default=0,
                         help='General dropout')
+    parser.add_argument('--class_weights', type=str, default='default',
+                        help='Weights for each class to be used in F1 and loss'
+                             ' calculations. Format: comma-separated numbers.')
 
 
 def eval_arguments(parser: argparse.ArgumentParser) -> None:
