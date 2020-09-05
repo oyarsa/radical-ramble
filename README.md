@@ -11,7 +11,7 @@ are:
 * DialogueRNN (T, T+A)
 
 Where `T` indicates a model with text as input, and `T+A` a model with both
-text and audio (simultaneously). We will not implement audio features, as the
+text and audio (simultaneously). We will not implement video features, as the
 baseline did not.
 
 ## Data
@@ -46,4 +46,13 @@ We maintain the same naming scheme for each video/audio file as the original.
 That is, `dia$X_utt$Y`, where `$X` is the dialogue ID and `Y` the utterance
 ID. Files with a different naming scheme are ignored.
 
+## Running this project
+Use [Poetry](https://python-poetry.org/) to install most of the dependencies:
+
+    $ poetry install
+
+However, Poetry doesn't support the `-f` option from pip, which
+is required to install Pytorch, so you have to install it directly:
+
+    $ pip install torch===1.6.0 torchvision===0.7.0 -f https://download pytorch.org/whl/torch_stable.html
 

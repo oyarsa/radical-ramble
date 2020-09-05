@@ -30,6 +30,7 @@ MANIFEST.in
 
 .mypy_cache
 .venv
+env
 
 # Data and other artifacts
 data

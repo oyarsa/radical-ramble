@@ -1,13 +1,11 @@
 [tool.poetry]
-name = "madewithml-incubator-2020"
+name = "radical-ramble"
 version = "0.1.0"
 description = ""
 authors = ["Italo Silva <italo@maleldil.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6.8"
-torch = "^1.5.1"
-torchvision = "^0.6.1"
 spacy = "^2.3.0"
 en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.0/en_core_web_sm-2.3.0.tar.gz"}
 jupyter = "^1.0.0"
