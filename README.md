@@ -46,6 +46,24 @@ We maintain the same naming scheme for each video/audio file as the original.
 That is, `dia$X_utt$Y`, where `$X` is the dialogue ID and `Y` the utterance
 ID. Files with a different naming scheme are ignored.
 
+
+## GloVe
+
+Most of the models use [GloVe](https://nlp.stanford.edu/projects/glove/) as their
+word embeddings. The scripts allow the user to supply the path to the GloVe
+file, but the configurations in `config` default to looking for them in the
+`data/glove` directory.
+
+
+## Configurations
+
+In the `config` folder, we have a few sample configurations for the available
+models. The configurations are .yaml files, and they have the same options as
+the script CLIs. You can also use a configuration as default value for parameters
+and then override them on the CLI.
+
+This configuration/CLI setup is courtesy of the great [ConfigArgParse](https://pypi.org/project/ConfigArgParse/) library.
+
 ## Running this project
 Use [Poetry](https://python-poetry.org/) to install most of the dependencies:
 
