@@ -104,7 +104,7 @@ def train_epoch(
 
         running_loss += loss.item()
         running_acc += calc_accuracy(outputs, labels, masks)
-        running_len += masks.nonzero().shape[0]
+        running_len += masks.nonzero(as_tuple=False).shape[0]
 
         cur_loss = running_loss / running_len
         cur_acc = running_acc / running_len

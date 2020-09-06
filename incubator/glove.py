@@ -21,7 +21,7 @@ def load_glove(
 
     weight_matrix = torch.zeros(size=(vocab.vocab_size(), glove_dim))
     if isinstance(input_file, (Path, str)):
-        input_file = open(input_file, 'r')
+        input_file = open(input_file, 'r', encoding='utf-8')
 
     for line in input_file:
         word, *weights_str = line.split()
